@@ -7086,145 +7086,145 @@ namespace IKVM.Internal
         }
 
 #if !STATIC_COMPILER
-        internal override string[] GetEnclosingMethod()
-        {
-            return impl.GetEnclosingMethod();
-        }
+		internal override string[] GetEnclosingMethod()
+		{
+			return impl.GetEnclosingMethod();
+		}
 
-        internal override string GetSourceFileName()
-        {
-            return sourceFileName;
-        }
+		internal override string GetSourceFileName()
+		{
+			return sourceFileName;
+		}
 
-        private int GetMethodBaseToken(MethodBase mb)
-        {
-            MethodBuilder mbld = mb as MethodBuilder;
-            if (mbld != null)
-            {
-                return mbld.GetMetadataToken();
-            }
-            return mb.MetadataToken;
-        }
+		private int GetMethodBaseToken(MethodBase mb)
+		{
+			MethodBuilder mbld = mb as MethodBuilder;
+			if (mbld != null)
+			{
+				return mbld.GetMetadataToken();
+			}
+			return mb.MetadataToken;
+		}
 
-        internal override int GetSourceLineNumber(MethodBase mb, int ilOffset)
-        {
-            if (lineNumberTables != null)
-            {
-                int token = GetMethodBaseToken(mb);
-                MethodWrapper[] methods = GetMethods();
-                for (int i = 0; i < methods.Length; i++)
-                {
-                    if (GetMethodBaseToken(methods[i].GetMethod()) == token)
-                    {
-                        if (lineNumberTables[i] != null)
-                        {
-                            return new LineNumberTableAttribute(lineNumberTables[i]).GetLineNumber(ilOffset);
-                        }
-                        break;
-                    }
-                }
-            }
-            return -1;
-        }
+		internal override int GetSourceLineNumber(MethodBase mb, int ilOffset)
+		{
+			if (lineNumberTables != null)
+			{
+				int token = GetMethodBaseToken(mb);
+				MethodWrapper[] methods = GetMethods();
+				for (int i = 0; i < methods.Length; i++)
+				{
+					if (GetMethodBaseToken(methods[i].GetMethod()) == token)
+					{
+						if (lineNumberTables[i] != null)
+						{
+							return new LineNumberTableAttribute(lineNumberTables[i]).GetLineNumber(ilOffset);
+						}
+						break;
+					}
+				}
+			}
+			return -1;
+		}
 
-        private object[] DecodeAnnotations(object[] definitions)
-        {
-            if (definitions == null)
-            {
-                return null;
-            }
-            java.lang.ClassLoader loader = GetClassLoader().GetJavaClassLoader();
-            List<object> annotations = new List<object>();
-            for (int i = 0; i < definitions.Length; i++)
-            {
-                object obj = JVM.NewAnnotation(loader, definitions[i]);
-                if (obj != null)
-                {
-                    annotations.Add(obj);
-                }
-            }
-            return annotations.ToArray();
-        }
+		private object[] DecodeAnnotations(object[] definitions)
+		{
+			if (definitions == null)
+			{
+				return null;
+			}
+			java.lang.ClassLoader loader = GetClassLoader().GetJavaClassLoader();
+			List<object> annotations = new List<object>();
+			for (int i = 0; i < definitions.Length; i++)
+			{
+				object obj = JVM.NewAnnotation(loader, definitions[i]);
+				if (obj != null)
+				{
+					annotations.Add(obj);
+				}
+			}
+			return annotations.ToArray();
+		}
 
-        internal override object[] GetDeclaredAnnotations()
-        {
-            return DecodeAnnotations(impl.GetDeclaredAnnotations());
-        }
+		internal override object[] GetDeclaredAnnotations()
+		{
+			return DecodeAnnotations(impl.GetDeclaredAnnotations());
+		}
 
-        internal override object[] GetMethodAnnotations(MethodWrapper mw)
-        {
-            MethodWrapper[] methods = GetMethods();
-            for (int i = 0; i < methods.Length; i++)
-            {
-                if (methods[i] == mw)
-                {
-                    return DecodeAnnotations(impl.GetMethodAnnotations(i));
-                }
-            }
-            Debug.Fail("Unreachable code");
-            return null;
-        }
+		internal override object[] GetMethodAnnotations(MethodWrapper mw)
+		{
+			MethodWrapper[] methods = GetMethods();
+			for (int i = 0; i < methods.Length; i++)
+			{
+				if (methods[i] == mw)
+				{
+					return DecodeAnnotations(impl.GetMethodAnnotations(i));
+				}
+			}
+			Debug.Fail("Unreachable code");
+			return null;
+		}
 
-        internal override object[][] GetParameterAnnotations(MethodWrapper mw)
-        {
-            MethodWrapper[] methods = GetMethods();
-            for (int i = 0; i < methods.Length; i++)
-            {
-                if (methods[i] == mw)
-                {
-                    object[][] annotations = impl.GetParameterAnnotations(i);
-                    if (annotations != null)
-                    {
-                        object[][] objs = new object[annotations.Length][];
-                        for (int j = 0; j < annotations.Length; j++)
-                        {
-                            objs[j] = DecodeAnnotations(annotations[j]);
-                        }
-                        return objs;
-                    }
-                    return null;
-                }
-            }
-            Debug.Fail("Unreachable code");
-            return null;
-        }
+		internal override object[][] GetParameterAnnotations(MethodWrapper mw)
+		{
+			MethodWrapper[] methods = GetMethods();
+			for (int i = 0; i < methods.Length; i++)
+			{
+				if (methods[i] == mw)
+				{
+					object[][] annotations = impl.GetParameterAnnotations(i);
+					if (annotations != null)
+					{
+						object[][] objs = new object[annotations.Length][];
+						for (int j = 0; j < annotations.Length; j++)
+						{
+							objs[j] = DecodeAnnotations(annotations[j]);
+						}
+						return objs;
+					}
+					return null;
+				}
+			}
+			Debug.Fail("Unreachable code");
+			return null;
+		}
 
-        internal override object[] GetFieldAnnotations(FieldWrapper fw)
-        {
-            FieldWrapper[] fields = GetFields();
-            for (int i = 0; i < fields.Length; i++)
-            {
-                if (fields[i] == fw)
-                {
-                    return DecodeAnnotations(impl.GetFieldAnnotations(i));
-                }
-            }
-            Debug.Fail("Unreachable code");
-            return null;
-        }
+		internal override object[] GetFieldAnnotations(FieldWrapper fw)
+		{
+			FieldWrapper[] fields = GetFields();
+			for (int i = 0; i < fields.Length; i++)
+			{
+				if (fields[i] == fw)
+				{
+					return DecodeAnnotations(impl.GetFieldAnnotations(i));
+				}
+			}
+			Debug.Fail("Unreachable code");
+			return null;
+		}
 
-        internal override object GetAnnotationDefault(MethodWrapper mw)
-        {
-            MethodWrapper[] methods = GetMethods();
-            for (int i = 0; i < methods.Length; i++)
-            {
-                if (methods[i] == mw)
-                {
-                    object defVal = impl.GetMethodDefaultValue(i);
-                    if (defVal != null)
-                    {
-                        return JVM.NewAnnotationElementValue(mw.DeclaringType.GetClassLoader().GetJavaClassLoader(), mw.ReturnType.ClassObject, defVal);
-                    }
-                    return null;
-                }
-            }
-            Debug.Fail("Unreachable code");
-            return null;
-        }
-        private Type GetBaseTypeForDefineType()
-        {
-            return BaseTypeWrapper.TypeAsBaseType;
-        }
+		internal override object GetAnnotationDefault(MethodWrapper mw)
+		{
+			MethodWrapper[] methods = GetMethods();
+			for (int i = 0; i < methods.Length; i++)
+			{
+				if (methods[i] == mw)
+				{
+					object defVal = impl.GetMethodDefaultValue(i);
+					if (defVal != null)
+					{
+						return JVM.NewAnnotationElementValue(mw.DeclaringType.GetClassLoader().GetJavaClassLoader(), mw.ReturnType.ClassObject, defVal);
+					}
+					return null;
+				}
+			}
+			Debug.Fail("Unreachable code");
+			return null;
+		}
+		private Type GetBaseTypeForDefineType()
+		{
+			return BaseTypeWrapper.TypeAsBaseType;
+		}
 #endif
 
 #if STATIC_COMPILER

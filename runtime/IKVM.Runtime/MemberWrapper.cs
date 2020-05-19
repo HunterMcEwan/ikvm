@@ -1558,17 +1558,17 @@ namespace IKVM.Internal
         }
 
 #if !STATIC_COMPILER && !STUB_GENERATOR
-        internal virtual void ResolveField()
-        {
-            FieldBuilder fb = field as FieldBuilder;
-            if(fb != null)
-            {
-                field = fb.Module.ResolveField(fb.GetMetadataToken());
-            }
-        }
+		internal virtual void ResolveField()
+		{
+			FieldBuilder fb = field as FieldBuilder;
+			if(fb != null)
+			{
+				field = fb.Module.ResolveField(fb.GetMetadataToken());
+			}
+		}
 
-        internal object GetFieldAccessorJNI()
-        {
+		internal object GetFieldAccessorJNI()
+		{
 #if FIRST_PASS
             return null;
 #else

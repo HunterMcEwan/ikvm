@@ -501,42 +501,6 @@ namespace IKVM.Internal
                 case CodeType.ReleaseTempLocal:
                     break;
                 case CodeType.SequencePoint:
-                    // MarkSequencePoint does not exist in .net core
-#if NETFRAMEWORK
-                    ilgen_real.MarkSequencePoint(symbols, (int)data, 0, (int)data + 1, 0);
-#endif
-            this.ilgen_real = ilgen;
-            this.declaringType = declaringType;
-        }
-
-        private void EmitPseudoOpCode(CodeType type, object data)
-        {
-            code.Add(new OpCodeWrapper(type, data));
-        }
-
-        private void EmitOpCode(OpCode opcode, object arg)
-        {
-            code.Add(new OpCodeWrapper(opcode, arg));
-        }
-
-        private void RealEmitPseudoOpCode(int ilOffset, CodeType type, object data)
-        {
-            switch (type)
-            {
-                case CodeType.Unreachable:
-                    break;
-                case CodeType.BeginScope:
-                    ilgen_real.BeginScope();
-                    break;
-                case CodeType.EndScope:
-                    ilgen_real.EndScope();
-                    break;
-                case CodeType.DeclareLocal:
-                    ((CodeEmitterLocal)data).Declare(ilgen_real);
-                    break;
-                case CodeType.ReleaseTempLocal:
-                    break;
-                case CodeType.SequencePoint:
                     throw new InvalidOperationException("Not supported on .NET Core");
                     // we emit a nop to make sure we always have an instruction associated with the sequence point
                     break;
