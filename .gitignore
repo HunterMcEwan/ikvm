@@ -69,3 +69,10 @@ openjdk/AssemblyInfo.java
 openjdk/MANIFEST.MF
 openjdk/java/lang/PropertyConstants.java
 openjdk/resources/nashorn/version.properties
+/native/Debug/ikvm-native.tlog
+/native/Debug
+/UpgradeLog.htm
+/UpgradeLog2.htm
+/Backup
+/Backup1
+/openjdk/openjdk-8u45-b14
