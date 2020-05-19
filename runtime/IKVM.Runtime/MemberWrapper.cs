@@ -1563,14 +1563,7 @@ namespace IKVM.Internal
 			FieldBuilder fb = field as FieldBuilder;
 			if(fb != null)
 			{
-#if NETFRAMEWORK
-				field = fb.Module.ResolveField(fb.GetToken().Token);
-#else
-				BindingFlags flags = BindingFlags.DeclaredOnly;
-				flags |= fb.IsPublic ? BindingFlags.Public : BindingFlags.NonPublic;
-				flags |= fb.IsStatic ? BindingFlags.Static : BindingFlags.Instance;
-				field = DeclaringType.TypeAsTBD.GetField(fb.Name, flags);
-#endif
+				field = fb.Module.ResolveField(fb.GetMetadataToken());
 			}
 		}
 

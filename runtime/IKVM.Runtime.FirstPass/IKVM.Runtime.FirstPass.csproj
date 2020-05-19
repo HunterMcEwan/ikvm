@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- netstandard2.0 does not allow unmanaged calling conventions used by CodeEmitter.cs:638 -->
-    <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <OutputPath>..\..\bin\$(Configuration)</OutputPath>
     <DefineConstants>$(DefineConstants);EMITTERS;CLASSGC;FIRST_PASS</DefineConstants>
     <NoWarn>$(NoWarn);169;649</NoWarn>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -16,11 +16,15 @@
     <AssemblyName>IKVM.Runtime</AssemblyName>
   </PropertyGroup>
 
-  <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
-    <Reference Include="System.Configuration" />
-  </ItemGroup>
-
-  <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))">
+  <ItemGroup>
+    <PackageReference Include="System.Reflection" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
+    <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.7.0" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
+    <PackageReference Include="System.Reflection.Extensions" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.7.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="1.8.1" />
+    <PackageReference Include="System.Reflection.Primitives" Version="4.3.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="4.7.0" />
@@ -35,7 +39,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DummyLibrary\DummyLibrary.csproj" />
+    <ProjectReference Include="../DummyLibrary/DummyLibrary.csproj" />
+    <ProjectReference Include="..\..\reflect\IKVM.Reflection.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -72,27 +77,13 @@
     </AssemblyAttribute>
   </ItemGroup>
 
-  <Target Name="AddAllowPartiallyTrustedCallers" BeforeTargets="Build">
-    <!-- Handle AllowPartiallyTrustedCallers (.NET Framework only) -->
-    <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
-      <AssemblyAttribute Include="System.Security.AllowPartiallyTrustedCallers" />
-    </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="." />
+    <Exec Command="C:\Users\marko\source\repos\ikvm\bin\Debug\netcoreapp3.1\ikvmstub.exe -bootstrap IKVM.Runtime.dll -r:..\bin\$(Configuration)\netstandard2.0\IKVM.OpenJDK.Core.dll" />
+    <Copy SourceFiles="IKVM.Runtime.jar" DestinationFolder="..\..\bin\$(Configuration)\netstandard2.0" />
   </Target>
-
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('net4'))">
-    <IkvmStub>..\..\bin\$(Configuration)\$(TargetFramework)\ikvmstub.exe</IkvmStub>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))">
-    <IkvmStub>..\..\bin\$(Configuration)\netcoreapp3.1\ikvmstub.exe</IkvmStub>
-  </PropertyGroup>
-
-  <Target Name="PostBuild" AfterTargets="CoreBuild">
-    <Exec Command="$(IkvmStub) -bootstrap $(OutputPath)IKVM.Runtime.dll -r:..\bin\$(Configuration)\$(TargetFramework)\IKVM.OpenJDK.Core.dll" />
-  </Target>
-
-  <Target Name="CustomClean" AfterTargets="CoreClean">
-    <Delete Files="$(OutputPath)IKVM.Runtime.jar" />
+  <Target Name="AfterClean" AfterTargets="Clean">
+    <Delete Files="..\..\bin\$(Configuration)\netstandard2.0\IKVM.Runtime.dll;IKVM.Runtime.dll;..\..\bin\$(Configuration)\netstandard2.0\IKVM.Runtime.jar;IKVM.Runtime.jar" />
   </Target>
 
 </Project>

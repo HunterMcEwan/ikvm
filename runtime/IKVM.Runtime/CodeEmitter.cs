@@ -91,10 +91,9 @@ namespace IKVM.Internal
             local = ilgen.DeclareLocal(type);
             if (name != null)
             {
-#if NETFRAMEWORK
-                // SetLocalSymInfo does not exist in .net core
-                local.SetLocalSymInfo(name);
-#endif
+                //local.SetLocalSymInfo(name);
+                //TODO: Find alternative 
+                throw new InvalidOperationException("Not supported on .NET Core!");
             }
         }
     }
@@ -316,7 +315,7 @@ namespace IKVM.Internal
                             }
                             else if (data is int)
                             {
-                                return opcode.Size + 4;;
+                                return opcode.Size + 4; ;
                             }
                             else if (data is long)
                             {
@@ -365,11 +364,11 @@ namespace IKVM.Internal
                             else if (data is CodeEmitterLocal)
                             {
                                 int index = ((CodeEmitterLocal)data).__LocalIndex;
-                                if(index < 4 && opcode.Value != OpCodes.Ldloca.Value && opcode.Value != OpCodes.Ldloca_S.Value)
+                                if (index < 4 && opcode.Value != OpCodes.Ldloca.Value && opcode.Value != OpCodes.Ldloca_S.Value)
                                 {
                                     return 1;
                                 }
-                                else if(index < 256)
+                                else if (index < 256)
                                 {
                                     return 2;
                                 }
@@ -380,7 +379,7 @@ namespace IKVM.Internal
                             }
                             else if (data is CodeEmitterLabel)
                             {
-                                switch(opcode.OperandType)
+                                switch (opcode.OperandType)
                                 {
                                     case OperandType.InlineBrTarget:
                                         return opcode.Size + 4;
@@ -506,8 +505,40 @@ namespace IKVM.Internal
 #if NETFRAMEWORK
                     ilgen_real.MarkSequencePoint(symbols, (int)data, 0, (int)data + 1, 0);
 #endif
+            this.ilgen_real = ilgen;
+            this.declaringType = declaringType;
+        }
+
+        private void EmitPseudoOpCode(CodeType type, object data)
+        {
+            code.Add(new OpCodeWrapper(type, data));
+        }
+
+        private void EmitOpCode(OpCode opcode, object arg)
+        {
+            code.Add(new OpCodeWrapper(opcode, arg));
+        }
+
+        private void RealEmitPseudoOpCode(int ilOffset, CodeType type, object data)
+        {
+            switch (type)
+            {
+                case CodeType.Unreachable:
+                    break;
+                case CodeType.BeginScope:
+                    ilgen_real.BeginScope();
+                    break;
+                case CodeType.EndScope:
+                    ilgen_real.EndScope();
+                    break;
+                case CodeType.DeclareLocal:
+                    ((CodeEmitterLocal)data).Declare(ilgen_real);
+                    break;
+                case CodeType.ReleaseTempLocal:
+                    break;
+                case CodeType.SequencePoint:
+                    throw new InvalidOperationException("Not supported on .NET Core");
                     // we emit a nop to make sure we always have an instruction associated with the sequence point
-                    ilgen_real.Emit(OpCodes.Nop);
                     break;
                 case CodeType.Label:
                     ilgen_real.MarkLabel(((CodeEmitterLabel)data).Label);
@@ -944,17 +975,17 @@ namespace IKVM.Internal
                     code[i] = new OpCodeWrapper(OpCodes.Ldc_I4, code[i].ValueInt32 & code[i + 1].ValueInt32);
                     code.RemoveRange(i + 1, 2);
                 }
-                else if (MatchCompare(i, OpCodes.Cgt, OpCodes.Clt_Un, Types.Double)		// dcmpl
-                    || MatchCompare(i, OpCodes.Cgt, OpCodes.Clt_Un, Types.Single))		// fcmpl
+                else if (MatchCompare(i, OpCodes.Cgt, OpCodes.Clt_Un, Types.Double)     // dcmpl
+                    || MatchCompare(i, OpCodes.Cgt, OpCodes.Clt_Un, Types.Single))      // fcmpl
                 {
                     PatchCompare(i, OpCodes.Ble_Un, OpCodes.Blt_Un, OpCodes.Bge, OpCodes.Bgt);
                 }
-                else if (MatchCompare(i, OpCodes.Cgt_Un, OpCodes.Clt, Types.Double)		// dcmpg
-                    || MatchCompare(i, OpCodes.Cgt_Un, OpCodes.Clt, Types.Single))		// fcmpg
+                else if (MatchCompare(i, OpCodes.Cgt_Un, OpCodes.Clt, Types.Double)     // dcmpg
+                    || MatchCompare(i, OpCodes.Cgt_Un, OpCodes.Clt, Types.Single))      // fcmpg
                 {
                     PatchCompare(i, OpCodes.Ble, OpCodes.Blt, OpCodes.Bge_Un, OpCodes.Bgt_Un);
                 }
-                else if (MatchCompare(i, OpCodes.Cgt, OpCodes.Clt, Types.Int64))		// lcmp
+                else if (MatchCompare(i, OpCodes.Cgt, OpCodes.Clt, Types.Int64))        // lcmp
                 {
                     PatchCompare(i, OpCodes.Ble, OpCodes.Blt, OpCodes.Bge, OpCodes.Bgt);
                 }
@@ -1214,12 +1245,12 @@ namespace IKVM.Internal
         private void ChaseBranches()
         {
             /*
-             * Here we do a couple of different optimizations to unconditional branches:
-             *  - a branch to a ret or endfinally will be replaced
-             *    by the ret or endfinally instruction (because that is always at least as efficient)
-             *  - a branch to a branch will remove the indirection
-             *  - a leave to a branch or leave will remove the indirection
-             */
+			 * Here we do a couple of different optimizations to unconditional branches:
+			 *  - a branch to a ret or endfinally will be replaced
+			 *    by the ret or endfinally instruction (because that is always at least as efficient)
+			 *  - a branch to a branch will remove the indirection
+			 *  - a leave to a branch or leave will remove the indirection
+			 */
             SetLabelIndexes();
             for (int i = 0; i < code.Count; i++)
             {
@@ -1269,9 +1300,9 @@ namespace IKVM.Internal
         private void RemoveSingletonBranches()
         {
             /*
-             * Here we try to remove unconditional branches that jump to a label with ref count of one
-             * and where the code is not otherwise used.
-             */
+			 * Here we try to remove unconditional branches that jump to a label with ref count of one
+			 * and where the code is not otherwise used.
+			 */
             SetLabelRefCounts();
             // now increment label refcounts for labels that are also reachable via the preceding instruction
             bool reachable = true;
@@ -1362,7 +1393,7 @@ namespace IKVM.Internal
                                 goto breakOuter;
                         }
                     }
-                breakOuter: ;
+                breakOuter:;
                 }
             }
         }
@@ -1666,7 +1697,7 @@ namespace IKVM.Internal
                         }
                     }
                 }
-            next: ;
+            next:;
             }
         }
 
@@ -1702,7 +1733,7 @@ namespace IKVM.Internal
                         source--;
                         target--;
                     }
-                break_while: ;
+                break_while:;
                     source++;
                     target++;
                     if (source != i && target > 0 && source != target - 1)
@@ -1822,7 +1853,7 @@ namespace IKVM.Internal
                             extra[extra[beginFault2]] = extra[i];
                         }
                     }
-                no_merge: ;
+                no_merge:;
                 }
             }
         }
@@ -1975,7 +2006,7 @@ namespace IKVM.Internal
                                 // if we end up here, all leaves have been successfully patched,
                                 // so now we turn the BeginFaultBlock into a BeginFinallyBlock
                                 code[beginFault] = new OpCodeWrapper(CodeType.BeginFinallyBlock, CodeTypeFlags.None);
-                            fail: ;
+                            fail:;
                             }
                             goto case CodeType.BeginFinallyBlock;
                         }
@@ -2115,28 +2146,28 @@ namespace IKVM.Internal
         private void CheckInvariantBranchInOrOutOfBlocks()
         {
             /*
-             * We maintain an invariant that a branch (other than an explicit leave)
-             * can never branch out or into an exception block (try or handler).
-             * This is a stronger invariant than requirement by MSIL, because
-             * we also disallow the following sequence:
-             * 
-             *    Br Label0
-             *    ...
-             *    BeginExceptionBlock
-             *    Label0:
-             *    ...
-             *    Br Label0
-             *    
-             * This should be rewritten as:
-             * 
-             *    Br Label0
-             *    ...
-             *    Label0:
-             *    BeginExceptionBlock
-             *    Label1:
-             *    ...
-             *    Br Label1
-             */
+			 * We maintain an invariant that a branch (other than an explicit leave)
+			 * can never branch out or into an exception block (try or handler).
+			 * This is a stronger invariant than requirement by MSIL, because
+			 * we also disallow the following sequence:
+			 * 
+			 *    Br Label0
+			 *    ...
+			 *    BeginExceptionBlock
+			 *    Label0:
+			 *    ...
+			 *    Br Label0
+			 *    
+			 * This should be rewritten as:
+			 * 
+			 *    Br Label0
+			 *    ...
+			 *    Label0:
+			 *    BeginExceptionBlock
+			 *    Label1:
+			 *    ...
+			 *    Br Label1
+			 */
             int blockId = 0;
             int nextBlockId = 1;
             Stack<int> blocks = new Stack<int>();
@@ -2374,9 +2405,8 @@ namespace IKVM.Internal
 
         internal void DefineSymbolDocument(ModuleBuilder module, string url, Guid language, Guid languageVendor, Guid documentType)
         {
-#if NETFRAMEWORK
-            symbols = module.DefineDocument(url, language, languageVendor, documentType);
-#endif
+            //symbols = module.DefineDocument(url, language, languageVendor, documentType);
+            throw new InvalidOperationException("Not supported on .NET Core.");
         }
 
         internal CodeEmitterLocal UnsafeAllocTempLocal(Type type)
@@ -2755,7 +2785,7 @@ namespace IKVM.Internal
                 CodeEmitterLabel ok = DefineLabel();
                 EmitBrtrue(ok);
                 Emit(OpCodes.Ldloc, lb);
-                EmitBrfalse(ok);	// handle null
+                EmitBrfalse(ok);    // handle null
                 Emit(OpCodes.Ldtoken, type);
                 Emit(OpCodes.Ldloc, lb);
                 Emit(OpCodes.Call, verboseCastFailure);

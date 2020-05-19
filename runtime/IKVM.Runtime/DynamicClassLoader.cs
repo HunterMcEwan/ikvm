@@ -157,7 +157,7 @@ namespace IKVM.Internal
             {
                 type.Finish();
             }
-            catch(RetargetableJavaException x)
+            catch (RetargetableJavaException x)
             {
                 throw x.ToJava();
             }
@@ -173,9 +173,9 @@ namespace IKVM.Internal
 
         internal override bool ReserveName(string name)
         {
-            lock(dynamicTypes)
+            lock (dynamicTypes)
             {
-                if(dynamicTypes.ContainsKey(name))
+                if (dynamicTypes.ContainsKey(name))
                 {
                     return false;
                 }
@@ -186,7 +186,7 @@ namespace IKVM.Internal
 
         internal override string AllocMangledName(DynamicTypeWrapper tw)
         {
-            lock(dynamicTypes)
+            lock (dynamicTypes)
             {
                 return TypeNameMangleImpl(dynamicTypes, tw.Name, tw);
             }
@@ -240,13 +240,13 @@ namespace IKVM.Internal
             // and will cause a CriticalFailure and exit the process.
             type.CreateStep1();
             type.CreateStep2();
-            if(types == null)
+            if (types == null)
             {
                 // we're defining an anonymous class, so we don't need any locking
                 TieClassAndWrapper(type, protectionDomain);
                 return type;
             }
-            lock(types)
+            lock (types)
             {
                 // in very extreme conditions another thread may have beaten us to it
                 // and loaded (not defined) a class with the same name, in that case
@@ -254,7 +254,7 @@ namespace IKVM.Internal
                 // in ClassLoaderWrapper.RegisterInitiatingLoader().
                 TypeWrapper race;
                 types.TryGetValue(f.Name, out race);
-                if(race == null)
+                if (race == null)
                 {
                     types[f.Name] = type;
                     TieClassAndWrapper(type, protectionDomain);
@@ -301,18 +301,18 @@ namespace IKVM.Internal
 
         internal override Type DefineUnloadable(string name)
         {
-            lock(this)
+            lock (this)
             {
-                if(unloadables == null)
+                if (unloadables == null)
                 {
                     unloadables = new Dictionary<string, TypeBuilder>();
                 }
                 TypeBuilder type;
-                if(unloadables.TryGetValue(name, out type))
+                if (unloadables.TryGetValue(name, out type))
                 {
                     return type;
                 }
-                if(unloadableContainer == null)
+                if (unloadableContainer == null)
                 {
                     unloadableContainer = moduleBuilder.DefineType(UnloadableTypeWrapper.ContainerTypeName, TypeAttributes.Interface | TypeAttributes.Abstract);
                     AttributeHelper.HideFromJava(unloadableContainer);
@@ -373,13 +373,13 @@ namespace IKVM.Internal
         {
             Dictionary<TypeWrapper, TypeWrapper> done = new Dictionary<TypeWrapper, TypeWrapper>();
             bool more = true;
-            while(more)
+            while (more)
             {
                 more = false;
                 List<TypeWrapper> l = new List<TypeWrapper>(dynamicTypes.Values);
-                foreach(TypeWrapper tw in l)
+                foreach (TypeWrapper tw in l)
                 {
-                    if(tw != null && !done.ContainsKey(tw))
+                    if (tw != null && !done.ContainsKey(tw))
                     {
                         more = true;
                         done.Add(tw, tw);
@@ -388,10 +388,10 @@ namespace IKVM.Internal
                     }
                 }
             }
-            if(unloadableContainer != null)
+            if (unloadableContainer != null)
             {
                 unloadableContainer.CreateType();
-                foreach(TypeBuilder tb in unloadables.Values)
+                foreach (TypeBuilder tb in unloadables.Values)
                 {
                     tb.CreateType();
                 }
@@ -432,22 +432,16 @@ namespace IKVM.Internal
         private static void SaveDebugAssembly(AssemblyBuilder ab)
         {
             Console.Error.WriteLine("Saving '{0}'", ab.GetName().Name + ".dll");
-#if NETFRAMEWORK
-            ab.Save(ab.GetName().Name + ".dll");
-#endif
+            throw new InvalidOperationException("Not supported in .NET core");
+            //ab.Save(ab.GetName().Name + ".dll");
         }
 
         internal static ModuleBuilder CreateJniProxyModuleBuilder()
         {
             AssemblyName name = new AssemblyName();
             name.Name = "jniproxy";
-#if NETFRAMEWORK
-            jniProxyAssemblyBuilder = DefineDynamicAssembly(name, AssemblyBuilderAccess.RunAndSave, null);
-            return jniProxyAssemblyBuilder.DefineDynamicModule("jniproxy.dll", "jniproxy.dll");
-#else
             jniProxyAssemblyBuilder = DefineDynamicAssembly(name, AssemblyBuilderAccess.Run, null);
             return jniProxyAssemblyBuilder.DefineDynamicModule("jniproxy.dll");
-#endif
         }
 #endif
 
@@ -548,7 +542,7 @@ namespace IKVM.Internal
         private static ModuleBuilder CreateModuleBuilder()
         {
             AssemblyName name = new AssemblyName();
-            if(JVM.IsSaveDebugImage)
+            if (JVM.IsSaveDebugImage)
             {
                 name.Name = "ikvmdump-" + System.Threading.Interlocked.Increment(ref dumpCounter);
             }
@@ -565,13 +559,9 @@ namespace IKVM.Internal
             name.Version = new Version(now.Year, (now.Month * 100) + now.Day, (now.Hour * 100) + now.Minute, (now.Second * 1000) + now.Millisecond);
             List<CustomAttributeBuilder> attribs = new List<CustomAttributeBuilder>();
             AssemblyBuilderAccess access;
-            if(JVM.IsSaveDebugImage)
+            if (JVM.IsSaveDebugImage)
             {
-#if NETFRAMEWORK
-                access = AssemblyBuilderAccess.RunAndSave;
-#else
                 access = AssemblyBuilderAccess.Run;
-#endif
             }
 #if CLASSGC
             else if(JVM.classUnloading
@@ -591,27 +581,31 @@ namespace IKVM.Internal
                 attribs.Add(new CustomAttributeBuilder(typeof(System.Security.SecurityTransparentAttribute).GetConstructor(Type.EmptyTypes), new object[0]));
             }
 #endif
+            else
+            {
+                access = AssemblyBuilderAccess.Run;
+            }
+#if NET_4_0
+			if(!AppDomain.CurrentDomain.IsFullyTrusted)
+			{
+				attribs.Add(new CustomAttributeBuilder(typeof(System.Security.SecurityTransparentAttribute).GetConstructor(Type.EmptyTypes), new object[0]));
+			}
+#endif
             AssemblyBuilder assemblyBuilder = DefineDynamicAssembly(name, access, attribs);
             AttributeHelper.SetRuntimeCompatibilityAttribute(assemblyBuilder);
-            bool debug = JVM.EmitSymbols;
+
+            //We no longer support debugging due to .NET Core Emitter limitations
+            bool debug = false;
             CustomAttributeBuilder debugAttr = new CustomAttributeBuilder(typeof(DebuggableAttribute).GetConstructor(new Type[] { typeof(bool), typeof(bool) }), new object[] { true, debug });
             assemblyBuilder.SetCustomAttribute(debugAttr);
-#if NETFRAMEWORK
-            ModuleBuilder moduleBuilder = JVM.IsSaveDebugImage ? assemblyBuilder.DefineDynamicModule(name.Name, name.Name + ".dll", debug) : assemblyBuilder.DefineDynamicModule(name.Name, debug);
-#else
             ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(name.Name);
-#endif
             moduleBuilder.SetCustomAttribute(new CustomAttributeBuilder(typeof(IKVM.Attributes.JavaModuleAttribute).GetConstructor(Type.EmptyTypes), new object[0]));
             return moduleBuilder;
         }
 
         private static AssemblyBuilder DefineDynamicAssembly(AssemblyName name, AssemblyBuilderAccess access, IEnumerable<CustomAttributeBuilder> assemblyAttributes)
         {
-#if NETFRAMEWORK
-            return AppDomain.CurrentDomain.DefineDynamicAssembly(name, access, null, true, assemblyAttributes);
-#else
             return AssemblyBuilder.DefineDynamicAssembly(name, access, assemblyAttributes);
-#endif
         }
 #endif // !STATIC_COMPILER
     }

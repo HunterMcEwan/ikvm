@@ -7022,15 +7022,7 @@ namespace IKVM.Internal
 			MethodBuilder mbld = mb as MethodBuilder;
 			if (mbld != null)
 			{
-#if NETFRAMEWORK
-				return mbld.GetToken().Token;
-#else
-				BindingFlags flags = BindingFlags.DeclaredOnly;
-				flags |= mbld.IsPublic ? BindingFlags.Public : BindingFlags.NonPublic;
-				flags |= mbld.IsStatic ? BindingFlags.Static : BindingFlags.Instance;
-				MethodInfo mi = TypeAsTBD.GetMethod(mbld.Name, flags, null, mbld.GetParameters().Select(p => p.ParameterType).ToArray(), null);
-				return mi.MetadataToken;
-#endif
+				return mbld.GetMetadataToken();
 			}
 			return mb.MetadataToken;
 		}
