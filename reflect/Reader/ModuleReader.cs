@@ -927,7 +927,7 @@ namespace IKVM.Reflection.Reader
 #if NETSTANDARD
                 throw new MissingFieldException(org.ToString() + "." + name);
 #else
-                throw new MissingFieldException(org.ToString(), name);
+				throw new MissingFieldException(org.ToString(), name);
 #endif
             }
             else
@@ -950,7 +950,7 @@ namespace IKVM.Reflection.Reader
 #if NETSTANDARD
                 throw new MissingMethodException(org.ToString() + "." + name);
 #else
-                throw new MissingMethodException(org.ToString(), name);
+				throw new MissingMethodException(org.ToString(), name);
 #endif
             }
         }
