@@ -71,10 +71,12 @@ namespace IKVM.Internal
             internal AssemblyLoader(Assembly assembly)
             {
                 this.assembly = assembly;
+                //Tracer.Info(Tracer.Compiler, $"Getting modules");
                 modules = assembly.GetModules(false);
                 isJavaModule = new bool[modules.Length];
                 for (int i = 0; i < modules.Length; i++)
                 {
+                    //Tracer.Info(Tracer.Compiler, $"Processing module {i}: {modules[i].FullyQualifiedName}.");
                     object[] attr = AttributeHelper.GetJavaModuleAttributes(modules[i]);
                     if (attr.Length > 0)
                     {
@@ -1093,17 +1095,22 @@ namespace IKVM.Internal
             // If the assembly is a part of a multi-assembly shared class loader,
             // it will export the __<MainAssembly> type from the main assembly in the group.
             Type forwarder = assembly.GetType("__<MainAssembly>");
+            //Tracer.Info(Tracer.Compiler, $"Creating loader");
+
             if (forwarder != null)
             {
+                //Tracer.Info(Tracer.Compiler, $"Getting main assembly");
                 Assembly mainAssembly = forwarder.Assembly;
                 if (mainAssembly != assembly)
                 {
+                    //Tracer.Info(Tracer.Compiler, $"Calling for non-main assembly: {mainAssembly.FullName} / {assembly.FullName}");
                     return FromAssembly(mainAssembly);
                 }
             }
 #if STATIC_COMPILER
             if (JVM.CoreAssembly == null && CompilerClassLoader.IsCoreAssembly(assembly))
             {
+                //Tracer.Info(Tracer.Compiler, $"Creating loader - loading remapped types");
                 JVM.CoreAssembly = assembly;
                 ClassLoaderWrapper.LoadRemappedTypes();
             }
@@ -1114,8 +1121,10 @@ namespace IKVM.Internal
                 // Note that the cast cannot fail, because ikvmc will only return a non AssemblyClassLoader
                 // from GetBootstrapClassLoader() when compiling the core assembly and in that case JVM.CoreAssembly
                 // will be null.
+                //Tracer.Info(Tracer.Compiler, $"Returning bootstrap loader");
                 return (AssemblyClassLoader)GetBootstrapClassLoader();
             }
+            //Tracer.Info(Tracer.Compiler, $"Returning new loader");
             return new AssemblyClassLoader(assembly);
         }
 
@@ -1299,8 +1308,8 @@ namespace IKVM.Internal
         internal BootstrapClassLoader()
             : base(JVM.CoreAssembly, new string[] {
                 typeof(object).Assembly.FullName,		// mscorlib
-                typeof(System.Uri).Assembly.FullName	// System
-            })
+				typeof(System.Uri).Assembly.FullName	// System
+			})
         {
         }
 

@@ -26,6 +26,7 @@ using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using IKVM.Reflection.Metadata;
+using System.Diagnostics;
 
 namespace IKVM.Reflection.Reader
 {
@@ -78,6 +79,9 @@ namespace IKVM.Reflection.Reader
         private Dictionary<int, string> strings = new Dictionary<int, string>();
         private Dictionary<TypeName, Type> types = new Dictionary<TypeName, Type>();
         private Dictionary<TypeName, LazyForwardedType> forwardedTypes = new Dictionary<TypeName, LazyForwardedType>();
+
+        //Diagnostics:
+        StackTrace typeDefsPopulateAt;
 
         private sealed class LazyForwardedType
         {
@@ -172,13 +176,17 @@ namespace IKVM.Reflection.Reader
             {
                 throw new BadImageFormatException("Invalid metadata signature");
             }
-            /*ushort MajorVersion =*/ br.ReadUInt16();
-            /*ushort MinorVersion =*/ br.ReadUInt16();
-            /*uint Reserved =*/ br.ReadUInt32();
+            /*ushort MajorVersion =*/
+            br.ReadUInt16();
+            /*ushort MinorVersion =*/
+            br.ReadUInt16();
+            /*uint Reserved =*/
+            br.ReadUInt32();
             uint Length = br.ReadUInt32();
             byte[] buf = br.ReadBytes((int)Length);
             Version = Encoding.UTF8.GetString(buf).TrimEnd('\u0000');
-            /*ushort Flags =*/ br.ReadUInt16();
+            /*ushort Flags =*/
+            br.ReadUInt16();
             ushort Streams = br.ReadUInt16();
             StreamHeader[] streamHeaders = new StreamHeader[Streams];
             for (int i = 0; i < streamHeaders.Length; i++)
@@ -192,12 +200,14 @@ namespace IKVM.Reflection.Reader
         private void ReadTables(BinaryReader br)
         {
             Table[] tables = GetTables();
-            /*uint Reserved0 =*/ br.ReadUInt32();
+            /*uint Reserved0 =*/
+            br.ReadUInt32();
             byte MajorVersion = br.ReadByte();
             byte MinorVersion = br.ReadByte();
             metadataStreamVersion = MajorVersion << 16 | MinorVersion;
             byte HeapSizes = br.ReadByte();
-            /*byte Reserved7 =*/ br.ReadByte();
+            /*byte Reserved7 =*/
+            br.ReadByte();
             ulong Valid = br.ReadUInt64();
             ulong Sorted = br.ReadUInt64();
             for (int i = 0; i < 64; i++)
@@ -226,7 +236,7 @@ namespace IKVM.Reflection.Reader
         {
             byte[] buf = new byte[size];
             stream.Seek(peFile.RvaToFileOffset(cliHeader.MetaData.VirtualAddress + offset), SeekOrigin.Begin);
-            for (int pos = 0; pos < buf.Length; )
+            for (int pos = 0; pos < buf.Length;)
             {
                 int read = stream.Read(buf, pos, buf.Length - pos);
                 if (read == 0)
@@ -266,8 +276,13 @@ namespace IKVM.Reflection.Reader
 
         private void PopulateTypeDef()
         {
+            //Console.WriteLine("Populating type definitions for module");
             if (typeDefs == null)
             {
+                //Console.WriteLine($"Non-existent. Adding {TypeDef.records.Length}");
+                //typeDefsPopulateAt = new StackTrace();
+                //StackTrace t = new StackTrace();
+                //Console.WriteLine(t);
                 typeDefs = new TypeDefImpl[TypeDef.records.Length];
                 for (int i = 0; i < typeDefs.Length; i++)
                 {
@@ -280,7 +295,12 @@ namespace IKVM.Reflection.Reader
                     else if (!type.IsNestedByFlags)
                     {
                         types.Add(type.TypeName, type);
+                        //Console.WriteLine($"Added type: {type.TypeName} for {this.Name}");
                     }
+                    /*else
+                    {
+                        Console.WriteLine($"Nested type: {type.TypeName}");
+                    }*/
                 }
                 // add forwarded types to forwardedTypes dictionary (because Module.GetType(string) should return them)
                 for (int i = 0; i < ExportedType.records.Length; i++)
@@ -293,6 +313,11 @@ namespace IKVM.Reflection.Reader
                     }
                 }
             }
+            /*else
+            {
+                Console.WriteLine($"TypeDefs exist and have {typeDefs.Length} entries.");
+                Console.WriteLine(typeDefsPopulateAt);
+            }*/
         }
 
         internal override string GetString(int index)
@@ -583,6 +608,7 @@ namespace IKVM.Reflection.Reader
 
         internal override Type FindType(TypeName typeName)
         {
+
             PopulateTypeDef();
             Type type;
             if (!types.TryGetValue(typeName, out type))
@@ -593,6 +619,11 @@ namespace IKVM.Reflection.Reader
                     return fw.GetType(this);
                 }
             }
+            //Console.WriteLine($"Searched for: {typeName} in {this.moduleType}");
+            /*if (type != null)
+            {
+                //Console.WriteLine($"Found type: {type.FullName}");
+            }*/
             return type;
         }
 
@@ -827,34 +858,34 @@ namespace IKVM.Reflection.Reader
                         memberRefs[index] = ResolveTypeMemberRef(ResolveType(owner), name, ByteReader.FromBlob(blobHeap, sig));
                         break;
                     case TypeSpecTable.Index:
-                    {
-                        Type type = ResolveType(owner, genericTypeArguments, genericMethodArguments);
-                        if (type.IsArray)
                         {
-                            MethodSignature methodSig = MethodSignature.ReadSig(this, ByteReader.FromBlob(blobHeap, sig), new GenericContext(genericTypeArguments, genericMethodArguments));
-                            return type.FindMethod(name, methodSig)
-                                ?? universe.GetMissingMethodOrThrow(this, type, name, methodSig);
-                        }
-                        else if (type.IsConstructedGenericType)
-                        {
-                            MemberInfo member = ResolveTypeMemberRef(type.GetGenericTypeDefinition(), name, ByteReader.FromBlob(blobHeap, sig));
-                            MethodBase mb = member as MethodBase;
-                            if (mb != null)
+                            Type type = ResolveType(owner, genericTypeArguments, genericMethodArguments);
+                            if (type.IsArray)
                             {
-                                member = mb.BindTypeParameters(type);
+                                MethodSignature methodSig = MethodSignature.ReadSig(this, ByteReader.FromBlob(blobHeap, sig), new GenericContext(genericTypeArguments, genericMethodArguments));
+                                return type.FindMethod(name, methodSig)
+                                    ?? universe.GetMissingMethodOrThrow(this, type, name, methodSig);
                             }
-                            FieldInfo fi = member as FieldInfo;
-                            if (fi != null)
+                            else if (type.IsConstructedGenericType)
                             {
-                                member = fi.BindTypeParameters(type);
+                                MemberInfo member = ResolveTypeMemberRef(type.GetGenericTypeDefinition(), name, ByteReader.FromBlob(blobHeap, sig));
+                                MethodBase mb = member as MethodBase;
+                                if (mb != null)
+                                {
+                                    member = mb.BindTypeParameters(type);
+                                }
+                                FieldInfo fi = member as FieldInfo;
+                                if (fi != null)
+                                {
+                                    member = fi.BindTypeParameters(type);
+                                }
+                                return member;
                             }
-                            return member;
+                            else
+                            {
+                                return ResolveTypeMemberRef(type, name, ByteReader.FromBlob(blobHeap, sig));
+                            }
                         }
-                        else
-                        {
-                            return ResolveTypeMemberRef(type, name, ByteReader.FromBlob(blobHeap, sig));
-                        }
-                    }
                     default:
                         throw new BadImageFormatException();
                 }

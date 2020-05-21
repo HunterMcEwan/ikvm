@@ -86,7 +86,7 @@ namespace IKVM.Internal
 			}
 			else
 			{
-				mscorlibVersion = universe.Load(Universe.CoreLibName).GetName().Version;
+				mscorlibVersion = (typeof(object)).Assembly.GetName().Version;
 			}
 #if STATIC_COMPILER
 			universe.AssemblyResolve += AssemblyResolve;
@@ -107,7 +107,7 @@ namespace IKVM.Internal
 						// to avoid problems (i.e. weird exceptions), we don't allow assemblies to load that reference a newer version of mscorlib
 						foreach (AssemblyName asmref in module.GetReferencedAssemblies())
 						{
-							if (asmref.Name == Universe.CoreLibName && asmref.Version > mscorlibVersion)
+							if (asmref.Name == "System.Private.CoreLib" && asmref.Version > mscorlibVersion)
 							{
 								Console.Error.WriteLine("Error: unable to load assembly '{0}' as it depends on a higher version of mscorlib than the one currently loaded", path);
 								Environment.Exit(1);
@@ -262,13 +262,12 @@ namespace IKVM.Internal
 					return asm;
 				}
 			}
+
 			if (previousMatch != null)
 			{
 				if (previousMatchLevel == 2)
 				{
-#if NETFRAMEWORK
-					EmitWarning(WarningId.HigherVersion, "assuming assembly reference \"{0}\" matches \"{1}\", you may need to supply runtime policy", previousMatch.FullName, name.FullName);
-#endif
+					EmitWarning(WarningId.HigherVersion, "assuming assembly reference \"{0}\" matches \"{1}\", you may need to supply runtime policy.", previousMatch.FullName, name.FullName);
 					return universe.Load(previousMatch.FullName);
 				}
 				else if (args.RequestingAssembly != null)
@@ -329,7 +328,7 @@ namespace IKVM.Internal
 			{
 				if (previousMatchLevel == 2)
 				{
-					EmitWarning(WarningId.HigherVersion, "assuming assembly reference \"{0}\" matches \"{1}\", you may need to supply runtime policy", previousMatch.FullName, name.FullName);
+					EmitWarning(WarningId.HigherVersion, "assuming assembly reference \"{0}\" matches \"{1}\", you may need to supply runtime policy.", previousMatch.FullName, name.FullName);
 					return LoadFile(new Uri(previousMatch.CodeBase).LocalPath);
 				}
 				else if (requestingAssembly != null)
@@ -430,7 +429,7 @@ namespace IKVM.Internal
 				{
 					try
 					{
-						if (AssemblyName.GetAssemblyName(r).Name == Universe.CoreLibName)
+						if (AssemblyName.GetAssemblyName(r).Name.ToLower().EndsWith("corelib"))
 						{
 							return LoadFile(r);
 						}
@@ -440,7 +439,7 @@ namespace IKVM.Internal
 					}
 				}
 			}
-			foreach (string mscorlib in FindAssemblyPath(Universe.CoreLibName + ".dll"))
+			foreach (string mscorlib in FindAssemblyPath("System.Private.CoreLib.dll"))
 			{
 				return LoadFile(mscorlib);
 			}

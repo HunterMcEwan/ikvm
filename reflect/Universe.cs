@@ -80,48 +80,48 @@ namespace IKVM.Reflection
     public delegate void ResolvedMissingMemberHandler(Module requestingModule, MemberInfo member);
 
     /*
-     * UniverseOptions:
-     *
-     *   None
-     *		Default behavior, most compatible with System.Reflection[.Emit]
-     *
-     *   EnableFunctionPointers
-     *		Normally function pointers in signatures are replaced by System.IntPtr
-     *		(for compatibility with System.Reflection), when this option is enabled
-     *		they are represented as first class types (Type.__IsFunctionPointer will
-     *		return true for them).
-     *
-     *   DisableFusion
-     *      Don't use native Fusion API to resolve assembly names.
-     *
-     *   DisablePseudoCustomAttributeRetrieval
-     *      Set this option to disable the generaton of pseudo-custom attributes
-     *      when querying custom attributes.
-     *
-     *   DontProvideAutomaticDefaultConstructor
-     *      Normally TypeBuilder, like System.Reflection.Emit, will provide a default
-     *      constructor for types that meet the requirements. By enabling this
-     *      option this behavior is disabled.
-     *
-     *   MetadataOnly
-     *      By default, when a module is read in, the stream is kept open to satisfy
-     *      subsequent lazy loading. In MetadataOnly mode only the metadata is read in
-     *      and after that the stream is closed immediately. Subsequent lazy loading
-     *      attempts will fail with an InvalidOperationException.
-     *      APIs that are not available is MetadataOnly mode are:
-     *      - Module.ResolveString()
-     *      - Module.GetSignerCertificate()
-     *      - Module.GetManifestResourceStream()
-     *      - Module.__ReadDataFromRVA()
-     *      - MethodBase.GetMethodBody()
-     *      - FieldInfo.__GetDataFromRVA()
-     *
-     *   DeterministicOutput
-     *      The generated output file will depend only on the input. In other words,
-     *      the PE file header time stamp will be set to zero and the module version
-     *      id will be based on a SHA1 of the contents, instead of a random guid.
-     *      This option can not be used in combination with PDB file generation.
-     */
+	 * UniverseOptions:
+	 *
+	 *   None
+	 *		Default behavior, most compatible with System.Reflection[.Emit]
+	 *
+	 *   EnableFunctionPointers
+	 *		Normally function pointers in signatures are replaced by System.IntPtr
+	 *		(for compatibility with System.Reflection), when this option is enabled
+	 *		they are represented as first class types (Type.__IsFunctionPointer will
+	 *		return true for them).
+	 *
+	 *   DisableFusion
+	 *      Don't use native Fusion API to resolve assembly names.
+	 *
+	 *   DisablePseudoCustomAttributeRetrieval
+	 *      Set this option to disable the generaton of pseudo-custom attributes
+	 *      when querying custom attributes.
+	 *
+	 *   DontProvideAutomaticDefaultConstructor
+	 *      Normally TypeBuilder, like System.Reflection.Emit, will provide a default
+	 *      constructor for types that meet the requirements. By enabling this
+	 *      option this behavior is disabled.
+	 *
+	 *   MetadataOnly
+	 *      By default, when a module is read in, the stream is kept open to satisfy
+	 *      subsequent lazy loading. In MetadataOnly mode only the metadata is read in
+	 *      and after that the stream is closed immediately. Subsequent lazy loading
+	 *      attempts will fail with an InvalidOperationException.
+	 *      APIs that are not available is MetadataOnly mode are:
+	 *      - Module.ResolveString()
+	 *      - Module.GetSignerCertificate()
+	 *      - Module.GetManifestResourceStream()
+	 *      - Module.__ReadDataFromRVA()
+	 *      - MethodBase.GetMethodBody()
+	 *      - FieldInfo.__GetDataFromRVA()
+	 *
+	 *   DeterministicOutput
+	 *      The generated output file will depend only on the input. In other words,
+	 *      the PE file header time stamp will be set to zero and the module version
+	 *      id will be based on a SHA1 of the contents, instead of a random guid.
+	 *      This option can not be used in combination with PDB file generation.
+	 */
 
     [Flags]
     public enum UniverseOptions
@@ -141,43 +141,6 @@ namespace IKVM.Reflection
 
     public sealed class Universe : IDisposable
     {
-#if NETFRAMEWORK
-        public static readonly string CoreLibName = "mscorlib";
-#else
-        public static readonly string CoreLibName = "netstandard";
-
-        public static string ReferenceAssembliesDirectory
-        {
-            get
-            {
-                return BuildRefDirFrom(System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory());
-            }
-        }
-
-        private static string BuildRefDirFrom(string runtimeDir)
-        {
-            // transform a thing like
-            // C:\Program Files\dotnet\shared\Microsoft.NETCore.App\3.1.7
-            // to
-            // C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\3.1.0\ref\netcoreapp3.1
-
-            var parts = runtimeDir.Split(Path.DirectorySeparatorChar);
-            var n = string.IsNullOrEmpty(parts[parts.Length - 1]) ? parts.Length - 2 : parts.Length - 1;
-            var versionDir = parts[n--];
-            var frameworkDir = parts[n--];
-            var newParts = new string[n + 5];
-            Array.Copy(parts, newParts, n);
-            var suffixParts = new string[] {"packs", frameworkDir + ".Ref", "3.1.0", "ref", "netcoreapp3.1"};
-            Array.Copy(suffixParts, 0, newParts, n, suffixParts.Length);
-            var dir = Path.Combine(newParts);
-            if (!Directory.Exists(dir))
-            {
-                throw new FileNotFoundException("Reference assemblies directory: " + dir);
-            }
-            return dir;
-        }
-#endif
-
         internal static readonly bool MonoRuntime = System.Type.GetType("Mono.Runtime") != null;
         private readonly Dictionary<Type, Type> canonicalizedTypes = new Dictionary<Type, Type>();
         private readonly List<AssemblyReader> assemblies = new List<AssemblyReader>();
@@ -255,33 +218,14 @@ namespace IKVM.Reflection
         {
             this.options = options;
             enableFunctionPointers = (options & UniverseOptions.EnableFunctionPointers) != 0;
-#if !NETSTANDARD
-            useNativeFusion = (options & UniverseOptions.DisableFusion) == 0 && GetUseNativeFusion();
-#endif
             returnPseudoCustomAttributes = (options & UniverseOptions.DisablePseudoCustomAttributeRetrieval) == 0;
             automaticallyProvideDefaultConstructor = (options & UniverseOptions.DontProvideAutomaticDefaultConstructor) == 0;
             resolveMissingMembers = (options & UniverseOptions.ResolveMissingMembers) != 0;
         }
 
-#if !NETSTANDARD
-        private static bool GetUseNativeFusion()
-        {
-            try
-            {
-                return Environment.OSVersion.Platform == PlatformID.Win32NT
-                    && !MonoRuntime
-                    && Environment.GetEnvironmentVariable("IKVM_DISABLE_FUSION") == null;
-            }
-            catch (System.Security.SecurityException)
-            {
-                return false;
-            }
-        }
-#endif
-
         internal Assembly Mscorlib
         {
-            get { return Load(CoreLibName); }
+            get { return LoadFile(typeof(object).Assembly.Location); }
         }
 
         private Type ImportMscorlibType(string ns, string name)
@@ -302,7 +246,8 @@ namespace IKVM.Reflection
             // Primitive here means that these types have a special metadata encoding, which means that
             // there can be references to them without referring to them by name explicitly.
             // We want these types to be usable even when they don't exist in mscorlib or there is no mscorlib loaded.
-            return Mscorlib.FindType(new TypeName("System", name)) ?? GetMissingType(null, Mscorlib.ManifestModule, null, new TypeName("System", name));
+            var foundType = Mscorlib.FindType(new TypeName("System", name));
+            return foundType ?? GetMissingType(null, Mscorlib.ManifestModule, null, new TypeName("System", name));
         }
 
         internal Type System_Object
@@ -562,7 +507,7 @@ namespace IKVM.Reflection
 
         internal bool HasMscorlib
         {
-            get { return GetLoadedAssembly(CoreLibName) != null; }
+            get { return GetLoadedAssembly("System.Private.CoreLib") != null; }
         }
 
         public event ResolveEventHandler AssemblyResolve
@@ -844,7 +789,8 @@ namespace IKVM.Reflection
                 return asm;
             }
 #if NETSTANDARD
-            string filepath = Path.Combine(ReferenceAssembliesDirectory, GetSimpleAssemblyName(refname) + ".dll");
+            string dir = Path.GetDirectoryName(TypeUtil.GetAssembly(typeof(object)).ManifestModule.FullyQualifiedName);
+            string filepath = Path.Combine(dir, GetSimpleAssemblyName(refname) + ".dll");
             if (File.Exists(filepath))
             {
                 using (RawModule module = OpenRawModule(filepath))
@@ -1010,13 +956,7 @@ namespace IKVM.Reflection
         // this is equivalent to the Fusion CompareAssemblyIdentity API
         public bool CompareAssemblyIdentity(string assemblyIdentity1, bool unified1, string assemblyIdentity2, bool unified2, out AssemblyComparisonResult result)
         {
-#if NETSTANDARD
             return Fusion.CompareAssemblyIdentityPure(assemblyIdentity1, unified1, assemblyIdentity2, unified2, out result);
-#else
-            return useNativeFusion
-                ? Fusion.CompareAssemblyIdentityNative(assemblyIdentity1, unified1, assemblyIdentity2, unified2, out result)
-                : Fusion.CompareAssemblyIdentityPure(assemblyIdentity1, unified1, assemblyIdentity2, unified2, out result);
-#endif
         }
 
         public AssemblyBuilder DefineDynamicAssembly(AssemblyName name, AssemblyBuilderAccess access)
@@ -1033,28 +973,6 @@ namespace IKVM.Reflection
         {
             return new AssemblyBuilder(this, name, dir, null);
         }
-
-#if !NETSTANDARD
-#if NET_4_0
-        [Obsolete]
-#endif
-        public AssemblyBuilder DefineDynamicAssembly(AssemblyName name, AssemblyBuilderAccess access, string dir, PermissionSet requiredPermissions, PermissionSet optionalPermissions, PermissionSet refusedPermissions)
-        {
-            AssemblyBuilder ab = new AssemblyBuilder(this, name, dir, null);
-            AddLegacyPermissionSet(ab, requiredPermissions, System.Security.Permissions.SecurityAction.RequestMinimum);
-            AddLegacyPermissionSet(ab, optionalPermissions, System.Security.Permissions.SecurityAction.RequestOptional);
-            AddLegacyPermissionSet(ab, refusedPermissions, System.Security.Permissions.SecurityAction.RequestRefuse);
-            return ab;
-        }
-
-        private static void AddLegacyPermissionSet(AssemblyBuilder ab, PermissionSet permissionSet, System.Security.Permissions.SecurityAction action)
-        {
-            if (permissionSet != null)
-            {
-                ab.__AddDeclarativeSecurity(CustomAttributeBuilder.__FromBlob(CustomAttributeBuilder.LegacyPermissionSet, (int)action, Encoding.Unicode.GetBytes(permissionSet.ToXml().ToString())));
-            }
-        }
-#endif
 
         internal void RegisterDynamicAssembly(AssemblyBuilder asm)
         {
@@ -1105,14 +1023,6 @@ namespace IKVM.Reflection
             }
             return asm;
         }
-
-#if !NETSTANDARD
-        [Obsolete("Please set UniverseOptions.ResolveMissingMembers instead.")]
-        public void EnableMissingMemberResolution()
-        {
-            resolveMissingMembers = true;
-        }
-#endif
 
         internal bool MissingMemberResolution
         {

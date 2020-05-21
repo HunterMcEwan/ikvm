@@ -28,6 +28,8 @@
  * Modified for IKVM by Jeroen Frijters
  */
 
+/* IKVM for .NET Core modified by Marko Kokol */
+
 package java.lang;
 
 import java.io.IOException;
@@ -796,7 +798,13 @@ final class ProcessImpl extends Process {
             if (false) throw new cli.System.IO.IOException();
             if (false) throw new cli.System.Security.SecurityException();
             if (false) throw new cli.System.UnauthorizedAccessException();
-            return FileDescriptor.fromStream(new FileStream(path, FileMode.wrap(FileMode.Append), FileAccess.wrap(FileAccess.Write), FileShare.wrap(FileShare.ReadWrite), 1, FileOptions.wrap(FileOptions.None)));
+            // TODO NET_CORE_INCOMPAT
+            // TODO NET_STANDARD_INCOMPAT
+            //
+            // https://github.com/dotnet/corefx/issues/39920
+            // https://github.com/dotnet/runtime/issues/30435#issuecomment-590609103
+            //return FileDescriptor.fromStream(new FileStream(path, FileMode.wrap(FileMode.Append), FileSystemRights.wrap(FileSystemRights.AppendData), FileShare.wrap(FileShare.ReadWrite), 1, FileOptions.wrap(FileOptions.None)));
+			return FileDescriptor.fromStream(cli.System.IO.FileSystemAclExtensions.Create(new cli.System.IO.FileInfo(path), FileMode.wrap(FileMode.Append), FileSystemRights.wrap(FileSystemRights.AppendData), FileShare.wrap(FileShare.ReadWrite), 1, FileOptions.wrap(FileOptions.None), null));
         } catch (cli.System.ArgumentException x) {
             throw new IOException(x.getMessage());
         } catch (cli.System.IO.IOException x) {
