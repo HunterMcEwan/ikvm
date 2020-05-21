@@ -86,7 +86,7 @@ namespace IKVM.Internal
 			}
 			else
 			{
-				mscorlibVersion = (typeof(object)).Assembly.GetName().Version;
+				mscorlibVersion = universe.Mscorlib.GetName().Version;
 			}
 #if STATIC_COMPILER
 			universe.AssemblyResolve += AssemblyResolve;
@@ -107,8 +107,9 @@ namespace IKVM.Internal
 						// to avoid problems (i.e. weird exceptions), we don't allow assemblies to load that reference a newer version of mscorlib
 						foreach (AssemblyName asmref in module.GetReferencedAssemblies())
 						{
-							if (asmref.Name == "System.Private.CoreLib" && asmref.Version > mscorlibVersion)
+							if (asmref.Name == "System.Runtime" && asmref.Version > mscorlibVersion)
 							{
+								Console.Error.WriteLine(asmref.FullName + " > " + mscorlibVersion);
 								Console.Error.WriteLine("Error: unable to load assembly '{0}' as it depends on a higher version of mscorlib than the one currently loaded", path);
 								Environment.Exit(1);
 							}
@@ -429,7 +430,7 @@ namespace IKVM.Internal
 				{
 					try
 					{
-						if (AssemblyName.GetAssemblyName(r).Name.ToLower().EndsWith("corelib"))
+						if (AssemblyName.GetAssemblyName(r).Name.ToLower()=="system.runtime")
 						{
 							return LoadFile(r);
 						}
@@ -439,7 +440,7 @@ namespace IKVM.Internal
 					}
 				}
 			}
-			foreach (string mscorlib in FindAssemblyPath("System.Private.CoreLib.dll"))
+			foreach (string mscorlib in FindAssemblyPath("System.Runtime.dll"))
 			{
 				return LoadFile(mscorlib);
 			}
