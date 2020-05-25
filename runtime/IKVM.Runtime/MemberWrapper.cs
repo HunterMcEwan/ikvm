@@ -778,21 +778,12 @@ namespace IKVM.Internal
         internal void ResolveMethod()
         {
 #if !FIRST_PASS
-            // if we've still got the builder object, we need to replace it with the real thing before we can call it
-            MethodBuilder mb = method as MethodBuilder;
-            if (mb != null)
-            {
-#if NETFRAMEWORK
-                method = mb.Module.ResolveMethod(mb.GetToken().Token);
-#else
-                BindingFlags flags = BindingFlags.DeclaredOnly;
-                flags |= mb.IsPublic ? BindingFlags.Public : BindingFlags.NonPublic;
-                flags |= mb.IsStatic ? BindingFlags.Static : BindingFlags.Instance;
-                method = DeclaringType.TypeAsTBD.GetMethod(mb.Name, flags, null, GetParametersForDefineMethod(), null);
-                if (method == null)
-                {
-                    method = DeclaringType.TypeAsTBD.GetConstructor(flags, null, GetParametersForDefineMethod(), null);
-                }
+			// if we've still got the builder object, we need to replace it with the real thing before we can call it
+			MethodBuilder mb = method as MethodBuilder;
+			if (mb != null)
+			{
+				method = mb.Module.ResolveMethod(mb.GetMetadataToken());
+			}
 #endif
             }
 #endif

@@ -117,7 +117,7 @@ namespace IKVM.Internal
         private List<OpCodeWrapper> code = new List<OpCodeWrapper>(10);
         private readonly Type declaringType;
 #if LABELCHECK
-        private Dictionary<CodeEmitterLabel, System.Diagnostics.StackFrame> labels = new Dictionary<CodeEmitterLabel, System.Diagnostics.StackFrame>();
+		private Dictionary<CodeEmitterLabel, System.Diagnostics.StackFrame> labels = new Dictionary<CodeEmitterLabel, System.Diagnostics.StackFrame>();
 #endif
 
         static CodeEmitter()
@@ -292,7 +292,7 @@ namespace IKVM.Internal
                         case CodeType.BeginFinallyBlock:
                         case CodeType.EndExceptionBlock:
 #if STATIC_COMPILER
-                            return 0;
+							return 0;
 #else
                             if ((flags & CodeTypeFlags.EndFaultOrFinally) != 0)
                             {
@@ -467,7 +467,7 @@ namespace IKVM.Internal
         private CodeEmitter(ILGenerator ilgen, Type declaringType)
         {
 #if STATIC_COMPILER
-            ilgen.__DisableExceptionBlockAssistance();
+			ilgen.__DisableExceptionBlockAssistance();
 #endif
             this.ilgen_real = ilgen;
             this.declaringType = declaringType;
@@ -2285,8 +2285,8 @@ namespace IKVM.Internal
             }
 
 #if STATIC_COMPILER
-            OptimizeEncodings();
-            OptimizeBranchSizes();
+			OptimizeEncodings();
+			OptimizeBranchSizes();
 #endif
 
             int ilOffset = 0;
@@ -2295,7 +2295,7 @@ namespace IKVM.Internal
             {
                 code[i].RealEmit(ilOffset, this, ref lineNumber);
 #if STATIC_COMPILER || NET_4_0
-                ilOffset = ilgen_real.ILOffset;
+				ilOffset = ilgen_real.ILOffset;
 #else
                 ilOffset += code[i].Size;
 #endif
@@ -2472,7 +2472,7 @@ namespace IKVM.Internal
         {
             CodeEmitterLabel label = new CodeEmitterLabel(ilgen_real.DefineLabel());
 #if LABELCHECK
-            labels.Add(label, new System.Diagnostics.StackFrame(1, true));
+			labels.Add(label, new System.Diagnostics.StackFrame(1, true));
 #endif
             return label;
         }
@@ -2661,7 +2661,7 @@ namespace IKVM.Internal
         internal void EndExceptionBlock()
         {
 #if STATIC_COMPILER
-            EmitPseudoOpCode(CodeType.EndExceptionBlock, null);
+			EmitPseudoOpCode(CodeType.EndExceptionBlock, null);
 #else
             EmitPseudoOpCode(CodeType.EndExceptionBlock, inFinally ? CodeTypeFlags.EndFaultOrFinally : CodeTypeFlags.None);
             inFinally = exceptionStack.Pop();
@@ -2676,7 +2676,7 @@ namespace IKVM.Internal
         internal void MarkLabel(CodeEmitterLabel loc)
         {
 #if LABELCHECK
-            labels.Remove(loc);
+			labels.Remove(loc);
 #endif
             EmitPseudoOpCode(CodeType.Label, loc);
         }
@@ -2702,13 +2702,13 @@ namespace IKVM.Internal
         }
 
 #if STATIC_COMPILER
-        internal void EmitLineNumberTable(MethodBuilder mb)
-        {
-            if(linenums != null)
-            {
-                AttributeHelper.SetLineNumberTable(mb, linenums);
-            }
-        }
+		internal void EmitLineNumberTable(MethodBuilder mb)
+		{
+			if(linenums != null)
+			{
+				AttributeHelper.SetLineNumberTable(mb, linenums);
+			}
+		}
 #endif // STATIC_COMPILER
 
         internal void EmitThrow(string dottedClassName)
@@ -2929,11 +2929,11 @@ namespace IKVM.Internal
         internal void CheckLabels()
         {
 #if LABELCHECK
-            foreach(System.Diagnostics.StackFrame frame in labels.Values)
-            {
-                string name = frame.GetFileName() + ":" + frame.GetFileLineNumber();
-                IKVM.Internal.JVM.CriticalFailure("Label failure: " + name, null);
-            }
+			foreach(System.Diagnostics.StackFrame frame in labels.Values)
+			{
+				string name = frame.GetFileName() + ":" + frame.GetFileLineNumber();
+				IKVM.Internal.JVM.CriticalFailure("Label failure: " + name, null);
+			}
 #endif
         }
 
