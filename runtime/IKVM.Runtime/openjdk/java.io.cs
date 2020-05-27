@@ -131,15 +131,27 @@ static class Java_java_io_FileDescriptor
 		}
 		else if (fileMode == FileMode.Append)
 		{
-#if NETFRAMEWORK
-			// this is the way to get atomic append behavior for all writes
-			return new FileStream(name, fileMode, FileSystemRights.AppendData, FileShare.ReadWrite, 1, FileOptions.None);
-#else
-			// the above constructor does not exist in .net core
-			// since the buffer size is 1 byte, it's always atomic
-			// if the buffer size needs to be bigger, find a way for the atomic append
-			return new FileStream(name, fileMode, fileAccess, FileShare.ReadWrite, 1, false);
-#endif
+			System.Security.AccessControl.FileSecurity security;
+			if (System.IO.File.Exists(name))
+			{
+				System.IO.FileInfo file = new FileInfo(name);
+				security = file.GetAccessControl();
+			}
+			else
+			{
+				System.IO.DirectoryInfo directory = new System.IO.DirectoryInfo(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(name)));
+				var parentSecurity = directory.GetAccessControl().GetAccessRules(true, true, typeof(System.Security.Principal.NTAccount));
+				security = new System.Security.AccessControl.FileSecurity();
+				foreach (object ruleObject in parentSecurity)
+				{
+					var rule = ruleObject as FileSystemAccessRule;
+					security.AddAccessRule(new FileSystemAccessRule(rule.IdentityReference, rule.FileSystemRights, rule.AccessControlType));
+				}
+
+				security.SetAccessRuleProtection(false, false);
+			}
+
+			return FileSystemAclExtensions.Create(new FileInfo(name), FileMode.Append, FileSystemRights.AppendData, FileShare.ReadWrite, 1, FileOptions.None, security);
 		}
 		else
 		{

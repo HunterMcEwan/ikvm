@@ -20,6 +20,29 @@
   Jeroen Frijters
   jeroen@frijters.net
   
+  =====
+
+  Copyright (C) 2020 Marko Kokol
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+  Marko Kokol
+  marko.kokol@semantika.eu
+
 */
 using System;
 using System.Diagnostics;
@@ -31,13 +54,14 @@ using System.Runtime.CompilerServices;
 using System.Security;
 using System.Threading;
 using IKVM.Internal;
+using System.Security.AccessControl;
 
 static class Java_java_lang_Class
 {
     public static java.lang.Class forName0(string name, bool initialize, java.lang.ClassLoader loader, java.lang.Class caller)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         //Console.WriteLine("forName: " + name + ", loader = " + loader);
         TypeWrapper tw = null;
@@ -146,7 +170,7 @@ static class Java_java_lang_Class
     public static object getConstantPool(java.lang.Class thisClass)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         return new ConstantPoolImpl(TypeWrapper.FromClass(thisClass).GetConstantPool());
 #endif
@@ -255,7 +279,7 @@ static class Java_java_lang_Class
     public static java.lang.Class[] getInterfaces0(java.lang.Class thisClass)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         TypeWrapper[] ifaces = TypeWrapper.FromClass(thisClass).Interfaces;
         java.lang.Class[] interfaces = new java.lang.Class[ifaces.Length];
@@ -284,7 +308,7 @@ static class Java_java_lang_Class
     public static object[] getSigners(java.lang.Class thisClass)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         return thisClass.signers;
 #endif
@@ -352,7 +376,7 @@ static class Java_java_lang_Class
     public static java.security.ProtectionDomain getProtectionDomain0(java.lang.Class thisClass)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         TypeWrapper wrapper = TypeWrapper.FromClass(thisClass);
         if (wrapper.IsArray)
@@ -419,7 +443,7 @@ static class Java_java_lang_Class
     internal static object AnnotationsToMap(ClassLoaderWrapper loader, object[] objAnn)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         java.util.LinkedHashMap map = new java.util.LinkedHashMap();
         if (objAnn != null)
@@ -452,7 +476,7 @@ static class Java_java_lang_Class
         if (attr != null)
         {
 #if DONT_WRAP_ANNOTATION_ATTRIBUTES
-            attr.freeze();
+			attr.freeze();
 #else
             // freeze to make sure the defaults are set
             attr.freeze();
@@ -466,7 +490,7 @@ static class Java_java_lang_Class
     public static object getDeclaredAnnotationsImpl(java.lang.Class thisClass)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         TypeWrapper wrapper = TypeWrapper.FromClass(thisClass);
         try
@@ -484,7 +508,7 @@ static class Java_java_lang_Class
     public static object getDeclaredFields0(java.lang.Class thisClass, bool publicOnly)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         Profiler.Enter("Class.getDeclaredFields0");
         try
@@ -525,7 +549,7 @@ static class Java_java_lang_Class
     public static object getDeclaredMethods0(java.lang.Class thisClass, bool publicOnly)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         Profiler.Enter("Class.getDeclaredMethods0");
         try
@@ -572,7 +596,7 @@ static class Java_java_lang_Class
     public static object getDeclaredConstructors0(java.lang.Class thisClass, bool publicOnly)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         Profiler.Enter("Class.getDeclaredConstructors0");
         try
@@ -618,7 +642,7 @@ static class Java_java_lang_Class
     public static java.lang.Class[] getDeclaredClasses0(java.lang.Class thisClass)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         try
         {
@@ -666,7 +690,7 @@ static class Java_java_lang_ClassLoader
     public static java.util.Enumeration getBootstrapResources(string name)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         return new ikvm.runtime.EnumerationWrapper(ClassLoaderWrapper.GetBootstrapClassLoader().GetResources(name));
 #endif
@@ -710,7 +734,7 @@ static class Java_java_lang_ClassLoader
     public static java.lang.Class defineClass2(java.lang.ClassLoader thisClassLoader, string name, java.nio.ByteBuffer bb, int off, int len, java.security.ProtectionDomain pd, string source)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         byte[] buf = new byte[bb.remaining()];
         bb.get(buf);
@@ -726,7 +750,7 @@ static class Java_java_lang_ClassLoader
     public static java.lang.Class findBootstrapClass(java.lang.ClassLoader thisClassLoader, string name)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         TypeWrapper tw;
         try
@@ -985,7 +1009,7 @@ static class Java_java_lang_SecurityManager
     public static java.lang.Class[] getClassContext(object thisSecurityManager)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         List<java.lang.Class> stack = new List<java.lang.Class>();
         StackTrace trace = new StackTrace();
@@ -1039,7 +1063,7 @@ static class Java_java_lang_StrictMath
     public static double sin(double d)
     {
 #if FIRST_PASS
-        return 0;
+		return 0;
 #else
         return ikvm.@internal.JMath.sin(d);
 #endif
@@ -1048,7 +1072,7 @@ static class Java_java_lang_StrictMath
     public static double cos(double d)
     {
 #if FIRST_PASS
-        return 0;
+		return 0;
 #else
         return ikvm.@internal.JMath.cos(d);
 #endif
@@ -1062,7 +1086,7 @@ static class Java_java_lang_StrictMath
     public static double asin(double d)
     {
 #if FIRST_PASS
-        return 0;
+		return 0;
 #else
         return ikvm.@internal.JMath.asin(d);
 #endif
@@ -1071,7 +1095,7 @@ static class Java_java_lang_StrictMath
     public static double acos(double d)
     {
 #if FIRST_PASS
-        return 0;
+		return 0;
 #else
         return ikvm.@internal.JMath.acos(d);
 #endif
@@ -1080,7 +1104,7 @@ static class Java_java_lang_StrictMath
     public static double atan(double d)
     {
 #if FIRST_PASS
-        return 0;
+		return 0;
 #else
         return ikvm.@internal.JMath.atan(d);
 #endif
@@ -1089,7 +1113,7 @@ static class Java_java_lang_StrictMath
     public static double exp(double d)
     {
 #if FIRST_PASS
-        return 0;
+		return 0;
 #else
         return ikvm.@internal.JMath.exp(d);
 #endif
@@ -1121,7 +1145,7 @@ static class Java_java_lang_StrictMath
     public static double IEEEremainder(double f1, double f2)
     {
 #if FIRST_PASS
-        return 0;
+		return 0;
 #else
         return ikvm.@internal.JMath.IEEEremainder(f1, f2);
 #endif
@@ -1130,7 +1154,7 @@ static class Java_java_lang_StrictMath
     public static double atan2(double y, double x)
     {
 #if FIRST_PASS
-        return 0;
+		return 0;
 #else
         return ikvm.@internal.JMath.atan2(y, x);
 #endif
@@ -1202,7 +1226,7 @@ static class Java_java_lang_System
     public static object initProperties(object props)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         java.lang.VMSystemProperties.initProperties((java.util.Properties)props);
         return props;
@@ -1212,7 +1236,7 @@ static class Java_java_lang_System
     public static string mapLibraryName(string libname)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         if (libname == null)
         {
@@ -1285,7 +1309,7 @@ static class Java_java_lang_Thread
     public static java.lang.StackTraceElement[] getStackTrace(StackTrace stack)
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         List<java.lang.StackTraceElement> stackTrace = new List<java.lang.StackTraceElement>();
         ExceptionHelper.ExceptionInfoHelper.Append(stackTrace, stack, 0, true);
@@ -1296,7 +1320,7 @@ static class Java_java_lang_Thread
     public static object getThreads()
     {
 #if FIRST_PASS
-        return null;
+		return null;
 #else
         return java.security.AccessController.doPrivileged(ikvm.runtime.Delegates.toPrivilegedAction(delegate
         {
@@ -1316,6 +1340,35 @@ static class Java_java_lang_Thread
 
 static class Java_java_lang_ProcessImpl
 {
+    public static FileStream openStreamForAtomicAppend(string name)
+    {
+#if !FIRST_PASS
+        System.Security.AccessControl.FileSecurity security;
+        if (System.IO.File.Exists(name))
+        {
+            System.IO.FileInfo file = new FileInfo(name);
+            security = file.GetAccessControl();
+        }
+        else
+        {
+            System.IO.DirectoryInfo directory = new System.IO.DirectoryInfo(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(name)));
+            var parentSecurity = directory.GetAccessControl().GetAccessRules(true, true, typeof(System.Security.Principal.NTAccount));
+            security = new System.Security.AccessControl.FileSecurity();
+            foreach (object ruleObject in parentSecurity)
+            {
+                var rule = ruleObject as FileSystemAccessRule;
+                security.AddAccessRule(new FileSystemAccessRule(rule.IdentityReference, rule.FileSystemRights, rule.AccessControlType));
+            }
+
+            security.SetAccessRuleProtection(false, false);
+        }
+
+        return FileSystemAclExtensions.Create(new FileInfo(name), FileMode.Append, FileSystemRights.AppendData, FileShare.ReadWrite, 1, FileOptions.None, security);
+#else
+        return null;
+#endif
+    }
+
     public static string mapVfsExecutable(string path)
     {
         string unquoted = path;
