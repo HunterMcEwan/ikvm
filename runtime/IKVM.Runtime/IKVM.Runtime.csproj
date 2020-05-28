@@ -49,19 +49,19 @@
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <Reference Include="IKVM.OpenJDK.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\bin\Debug\netcoreapp3.1\IKVM.OpenJDK.Core.dll</HintPath>
+      <HintPath>..\..\bin\Release\netcoreapp3.1\IKVM.OpenJDK.Core.dll</HintPath>
     </Reference>
     <Reference Include="IKVM.OpenJDK.Management, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\bin\Debug\netcoreapp3.1\IKVM.OpenJDK.Management.dll</HintPath>
+      <HintPath>..\..\bin\Release\netcoreapp3.1\IKVM.OpenJDK.Management.dll</HintPath>
     </Reference>
     <Reference Include="IKVM.OpenJDK.Misc, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\bin\Debug\netcoreapp3.1\IKVM.OpenJDK.Misc.dll</HintPath>
+      <HintPath>..\..\bin\Release\netcoreapp3.1\IKVM.OpenJDK.Misc.dll</HintPath>
     </Reference>
     <Reference Include="IKVM.OpenJDK.Util, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\bin\Debug\netcoreapp3.1\IKVM.OpenJDK.Util.dll</HintPath>
+      <HintPath>..\..\bin\Release\netcoreapp3.1\IKVM.OpenJDK.Util.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -75,33 +75,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>IKVM.Runtime.JNI</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>IKVM.OpenJDK.Core</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>IKVM.OpenJDK.Util</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>IKVM.OpenJDK.Security</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>IKVM.OpenJDK.Management</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>IKVM.OpenJDK.Media</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>IKVM.OpenJDK.Misc</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>IKVM.OpenJDK.Remoting</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>IKVM.OpenJDK.SwingAWT</_Parameter1>
-    </AssemblyAttribute>
+    <InternalsVisibleTo Include="IKVM.Runtime.JNI" />
+    <InternalsVisibleTo Include="IKVM.OpenJDK.Core" />
+    <InternalsVisibleTo Include="IKVM.OpenJDK.Util" />
+    <InternalsVisibleTo Include="IKVM.OpenJDK.Security" />
+    <InternalsVisibleTo Include="IKVM.OpenJDK.Management" />
+    <InternalsVisibleTo Include="IKVM.OpenJDK.Media" />
+    <InternalsVisibleTo Include="IKVM.OpenJDK.Misc" />
+    <InternalsVisibleTo Include="IKVM.OpenJDK.Remoting" />
   </ItemGroup>
 
 </Project>
