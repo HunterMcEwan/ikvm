@@ -24,79 +24,79 @@
 
 namespace ikvm
 {
-	namespace @internal
-	{
-		public class CallerID { }
-	}
+    namespace @internal
+    {
+        public class CallerID { }
+    }
 }
 
 namespace java
 {
-	namespace io
-	{
-		public class File { }
-		public class FileDescriptor { }
-		public class ObjectInputStream { }
-		public class ObjectOutputStream { }
-		public class ObjectStreamField { }
-		public class PrintStream { }
-		public class PrintWriter { }
-	}
+    namespace io
+    {
+        public class File { }
+        public class FileDescriptor { }
+        public class ObjectInputStream { }
+        public class ObjectOutputStream { }
+        public class ObjectStreamField { }
+        public class PrintStream { }
+        public class PrintWriter { }
+    }
 
-	namespace lang
-	{
-		public class Class { }
-		public class ClassLoader { }
-		public class IllegalArgumentException { }
-		public class SecurityManager { }
-		public class StackTraceElement { }
+    namespace lang
+    {
+        public class Class { }
+        public class ClassLoader { }
+        public class IllegalArgumentException { }
+        public class SecurityManager { }
+        public class StackTraceElement { }
 
-		namespace invoke
-		{
-			public class DirectMethodHandle { }
-			public class LambdaForm { }
-			public class MemberName { }
-			public class MethodType { }
-			public class MethodHandle { }
-			public class CallSite { }
-		}
+        namespace invoke
+        {
+            public class DirectMethodHandle { }
+            public class LambdaForm { }
+            public class MemberName { }
+            public class MethodType { }
+            public class MethodHandle { }
+            public class CallSite { }
+        }
 
-		namespace reflect
-		{
-			public class Constructor : Executable { }
-			public class Executable { }
-			public class Field { }
-			public class Method : Executable { }
-		}
-	}
+        namespace reflect
+        {
+            public class Constructor : Executable { }
+            public class Executable { }
+            public class Field { }
+            public class Method : Executable { }
+        }
+    }
 
-	namespace net
-	{
-		public class URL { }
-		public class InetAddress { }
-	}
+    namespace net
+    {
+        public class URL { }
+        public class InetAddress { }
+    }
 
-	namespace nio
-	{
-		public class ByteBuffer { }
-	}
+    namespace nio
+    {
+        public class ByteBuffer { }
+    }
 
-	namespace security
-	{
-		public class AccessControlContext { }
-		public class ProtectionDomain { }
-	}
+    namespace security
+    {
+        public class AccessControlContext { }
+        public class ProtectionDomain { }
+    }
 
-	namespace util
-	{
-		public class Enumeration { }
-		public class Vector { }
-	}
+    namespace util
+    {
+        public class Enumeration { }
+        public class Vector { }
+    }
 }
 
 namespace sun.reflect
 {
-	public interface ConstructorAccessor { }
-	public interface FieldAccessor { }
-	public interface MethodAccessor { }
+    public interface ConstructorAccessor { }
+    public interface FieldAccessor { }
+    public interface MethodAccessor { }
 }
