@@ -1,3 +1,12 @@
+# VS2015 settings directory
+.vs/
+
+# Roslyn cache directories
+*.ide/
+
+# JetBrains directories
+*.idea/
+
 # CVS default ignores begin
 tags
 TAGS
@@ -47,7 +56,6 @@ runtime/**/*.dll
 tools/*.exe
 tools/*.dll
 
-.vs/
 **/bin/
 **/obj/
 
