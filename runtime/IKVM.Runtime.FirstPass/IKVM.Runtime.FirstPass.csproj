@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <OutputPath>..\..\bin\$(Configuration)</OutputPath>
     <DefineConstants>$(DefineConstants);EMITTERS;CLASSGC;FIRST_PASS</DefineConstants>
     <NoWarn>$(NoWarn);169;649</NoWarn>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OutputPath>..\..\bin\$(Configuration)</OutputPath>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Label="NuGet Package/Assembly Settings">
@@ -17,12 +17,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="SharpZipLib" Version="1.2.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
-    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="4.7.0" />
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="4.7.0" />
-    <PackageReference Include="System.Security.Permissions" Version="4.7.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="5.0.0" />
+    <PackageReference Include="System.Security.Permissions" Version="5.0.0" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -51,11 +51,11 @@
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="." />
-    <Exec Command="..\..\bin\$(Configuration)\netcoreapp3.1\ikvmstub.exe -bootstrap IKVM.Runtime.dll -r:..\bin\$(Configuration)\netstandard2.1\IKVM.OpenJDK.Core.dll" />
-    <Copy SourceFiles="IKVM.Runtime.jar" DestinationFolder="..\..\bin\$(Configuration)\netstandard2.1" />
+    <Exec Command="..\..\bin\$(Configuration)\$(TargetFramework)\ikvmstub.exe -bootstrap IKVM.Runtime.dll -r:..\bin\$(Configuration)\$(TargetFramework)\IKVM.OpenJDK.Core.dll" />
+    <Copy SourceFiles="IKVM.Runtime.jar" DestinationFolder="..\..\bin\$(Configuration)\$(TargetFramework)" />
   </Target>
   <Target Name="AfterClean" AfterTargets="Clean">
-    <Delete Files="..\..\bin\$(Configuration)\netstandard2.1\IKVM.Runtime.dll;IKVM.Runtime.dll;..\..\bin\$(Configuration)\netstandard2.1\IKVM.Runtime.jar;IKVM.Runtime.jar" />
+    <Delete Files="..\..\bin\$(Configuration)\$(TargetFramework)\IKVM.Runtime.dll;IKVM.Runtime.dll;..\..\bin\$(Configuration)\$(TargetFramework)\IKVM.Runtime.jar;IKVM.Runtime.jar" />
   </Target>
 
 </Project>

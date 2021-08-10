@@ -211,7 +211,7 @@ namespace IKVM.Internal
             try {
                 var loadedType = System.Type.GetType(sourceType.AssemblyQualifiedName);
                 return loadedType;
-            } catch (Exception ex) {
+            } catch (Exception) {
                 return null;
             }
 #else

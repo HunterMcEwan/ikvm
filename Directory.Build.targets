@@ -3,8 +3,7 @@
     <DocumentationFile>$(TargetDir)/$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
   
-  <!-- Features in .NET Standard and .NET Core only (no .NET Framework support) -->
-  <PropertyGroup Condition=" $(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcoreapp')) ">
+  <PropertyGroup>
     <DefineConstants>$(DefineConstants);NETSTANDARD</DefineConstants>
     <DebugType>portable</DebugType>
   </PropertyGroup>

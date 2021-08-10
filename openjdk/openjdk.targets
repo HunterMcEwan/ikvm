@@ -4,130 +4,46 @@
     <OpenJdkDir>openjdk-8u45-b14</OpenJdkDir>
     <OpenJdkDirSlash>openjdk-8u45-b14</OpenJdkDirSlash>
     <SkipSystemCoreDependency>false</SkipSystemCoreDependency>
-    <IkvmstubExe>..\bin\$(Configuration)\netcoreapp3.1\ikvmstub.exe</IkvmstubExe>
-    <IkvmcExe>..\bin\$(Configuration)\netcoreapp3.1\ikvmc.exe</IkvmcExe>
+    <IkvmstubExe>..\bin\$(Configuration)\$(TargetFramework)\ikvmstub.exe</IkvmstubExe>
+    <IkvmcExe>..\bin\$(Configuration)\$(TargetFramework)\ikvmc.exe</IkvmcExe>
+    <RefDllPath>$(SolutionDir)\bin\$(Configuration)\$(TargetFramework)\publish\refs</RefDllPath>
     <OpenJdkImplementationVersion>1.8.0</OpenJdkImplementationVersion>
     <OpenJdkSpecificationVersion>1.8</OpenJdkSpecificationVersion>
     <OpenJdkFullVersion>1.8.0_45-b14</OpenJdkFullVersion>
     <OpenJdkVersion>OpenJDK 8u45 b14</OpenJdkVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('net4'))">
+  <PropertyGroup>
     <IkvmStub>..\bin\$(Configuration)\$(TargetFramework)\ikvmstub.exe</IkvmStub>
     <Ikvmc>..\bin\$(Configuration)\$(TargetFramework)\ikvmc.exe</Ikvmc>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))">
-    <IkvmStub>..\bin\$(Configuration)\netcoreapp3.1\ikvmstub.exe</IkvmStub>
-    <Ikvmc>..\bin\$(Configuration)\netcoreapp3.1\ikvmc.exe</Ikvmc>
   </PropertyGroup>
 
   <Target Name="RunBuild" BeforeTargets="CoreCompile" DependsOnTargets="BuildClasses;Rmi;RunNasgen;Vfs;Resources;Core">
   </Target>
 
-  <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
-    <BuildClassesClasspath Include="mscorlib.jar" />
-    <BuildClassesClasspath Include="System.jar" />
-    <BuildClassesClasspath Include="System.Core.jar" />
-    <BuildClassesClasspath Include="System.Data.jar" />
-    <BuildClassesClasspath Include="System.Drawing.jar" />
-    <BuildClassesClasspath Include="System.Xml.jar" />
-    <BuildClassesClasspath Include="..\runtime\IKVM.Runtime.FirstPass\IKVM.Runtime.jar" />
-  </ItemGroup>
-
-  <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))">
-    <BuildClassesClasspath Include="Microsoft.Win32.Primitives.jar" />
-    <BuildClassesClasspath Include="System.Collections.Specialized.jar" />
-    <BuildClassesClasspath Include="System.ComponentModel.jar" />
-    <BuildClassesClasspath Include="System.ComponentModel.Primitives.jar" />
-    <BuildClassesClasspath Include="System.ComponentModel.TypeConverter.jar" />
+  <ItemGroup>
+    <BuildClassesClasspath Include="netstandard.jar" />
     <BuildClassesClasspath Include="System.Configuration.ConfigurationManager.jar" />
-    <BuildClassesClasspath Include="System.Console.jar" />
-    <BuildClassesClasspath Include="System.Data.Common.jar" />
     <BuildClassesClasspath Include="System.Data.Odbc.jar" />
-    <BuildClassesClasspath Include="System.Diagnostics.FileVersionInfo.jar" />
-    <BuildClassesClasspath Include="System.Diagnostics.Process.jar" />
-    <BuildClassesClasspath Include="System.Diagnostics.StackTrace.jar" />
     <BuildClassesClasspath Include="System.Drawing.Common.jar" />
-    <BuildClassesClasspath Include="System.Drawing.Primitives.jar" />
-    <BuildClassesClasspath Include="System.IO.FileSystem.jar" />
     <BuildClassesClasspath Include="System.IO.FileSystem.AccessControl.jar" />
-    <BuildClassesClasspath Include="System.IO.FileSystem.DriveInfo.jar" />
-    <BuildClassesClasspath Include="System.IO.FileSystem.Watcher.jar" />
-    <BuildClassesClasspath Include="System.Net.Mail.jar" />
-    <BuildClassesClasspath Include="System.Net.NetworkInformation.jar" />
-    <BuildClassesClasspath Include="System.Net.Primitives.jar" />
-    <BuildClassesClasspath Include="System.Net.Sockets.jar" />
-    <BuildClassesClasspath Include="System.Runtime.jar" />
-    <BuildClassesClasspath Include="System.Runtime.Extensions.jar" />
-    <BuildClassesClasspath Include="System.Runtime.InteropServices.jar" />
-    <BuildClassesClasspath Include="System.Security.Cryptography.Algorithms.jar" />
-    <BuildClassesClasspath Include="System.Security.Cryptography.Csp.jar" />
-    <BuildClassesClasspath Include="System.Security.Permissions.jar" />
-    <BuildClassesClasspath Include="System.Threading.jar" />
-    <BuildClassesClasspath Include="System.Threading.Thread.jar" />
-    <BuildClassesClasspath Include="System.Threading.ThreadPool.jar" />
-    <BuildClassesClasspath Include="System.Xml.ReaderWriter.jar" />
-    <BuildClassesClasspath Include="..\runtime\IKVM.Runtime.FirstPass\IKVM.Runtime.jar" />
+    <BuildClassesClasspath Include="System.Security.AccessControl.jar" />
+    <BuildClassesClasspath Include="..\bin\$(Configuration)\$(TargetFramework)\IKVM.Runtime.jar" />
   </ItemGroup>
 
   <Target Name="BuildClasses" DependsOnTargets="StubJars;AllSourcesGenLst;AssemblyInfoJava;PropertyConstantsJava">
     <Message Text="BuildClasses target is running..." Importance="high" />
-    <Exec Command="javac -target 8 -J-Xmx1536M -g -nowarn -implicit:none -parameters -cp dummy -bootclasspath netstandard.jar;System.Security.AccessControl.jar;System.IO.FileSystem.AccessControl.jar;System.Drawing.Common.jar;System.Drawing.Primitives;Microsoft.Win32.Primitives;System.Configuration.ConfigurationManager.jar;System.Data.Odbc.jar;..\bin\$(Configuration)\$(TargetFramework)\IKVM.Runtime.jar @allsources.gen.lst" />
+    <Exec Command="javac -target 8 -J-Xmx1536M -g -nowarn -implicit:none -parameters -cp dummy -bootclasspath @(BuildClassesClasspath, ';') @allsources.gen.lst" />
   </Target>
 
   <Target Name="StubJars" DependsOnTargets="SystemCore">
-    <Exec Command='$(IkvmstubExe) -bootstrap ..\bin\$(Configuration)\netstandard2.1\publish\refs\netstandard.dll -forwarders' />
-    <Exec Command="$(IkvmstubExe) -bootstrap ..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.AccessControl.dll -forwarders" />
-    <Exec Command="$(IkvmstubExe) -bootstrap ..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.FileSystem.AccessControl.dll -forwarders" />
-    <Exec Command="$(IkvmstubExe) -bootstrap ..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Drawing.Common.dll -forwarders" />
-    <Exec Command="$(IkvmstubExe) -bootstrap ..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Drawing.Primitives.dll -forwarders" />
-	<Exec Command="$(IkvmstubExe) -bootstrap ..\bin\$(Configuration)\netstandard2.1\publish\refs\Microsoft.Win32.Primitives.dll -forwarders" />
-	<Exec Command="$(IkvmstubExe) -bootstrap ..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Configuration.ConfigurationManager.dll -forwarders" />
-	<Exec Command="$(IkvmstubExe) -bootstrap ..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Data.Odbc.dll -forwarders" />
-  </Target>
-
-  <Target Name="StubJars" DependsOnTargets="InitBuild;SystemCore">
-    <Exec Command="$(IkvmStub) -bootstrap mscorlib" Condition="$(TargetFramework.StartsWith('net4'))" />
-    <Exec Command="$(IkvmStub) -bootstrap System" Condition="$(TargetFramework.StartsWith('net4'))" />
-    <Exec Command="$(IkvmStub) -bootstrap System.Core" Condition=" !$(SkipSystemCoreDependency) And $(TargetFramework.StartsWith('net4')) " />
-    <Exec Command="$(IkvmStub) -bootstrap System.Data" Condition="$(TargetFramework.StartsWith('net4'))" />
-    <Exec Command="$(IkvmStub) -bootstrap System.Drawing" Condition="$(TargetFramework.StartsWith('net4'))" />
-    <Exec Command="$(IkvmStub) -bootstrap System.Xml" Condition="$(TargetFramework.StartsWith('net4'))"/>
-
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap Microsoft.Win32.Primitives" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Collections.Specialized" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.ComponentModel" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.ComponentModel.Primitives" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.ComponentModel.TypeConverter" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Console" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Data.Common" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Diagnostics.FileVersionInfo" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Diagnostics.Process" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Diagnostics.StackTrace" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Drawing.Primitives" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.IO.FileSystem" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.IO.FileSystem.DriveInfo" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.IO.FileSystem.Watcher" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Net.Mail" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Net.NetworkInformation" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Net.Primitives" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Net.Sockets" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Runtime" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Runtime.Extensions" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Runtime.InteropServices" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Security.Cryptography.Algorithms" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Security.Cryptography.Csp" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Threading" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Threading.Thread" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Threading.ThreadPool" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap System.Xml.ReaderWriter" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap -r:$(PkgSystem_Security_AccessControl)\ref\netstandard2.0\System.Security.AccessControl.dll -r:$(PkgSystem_Security_Principal_Windows)\ref\netcoreapp3.0\System.Security.Principal.Windows.dll $(PkgSystem_IO_FileSystem_AccessControl)\ref\netstandard2.0\System.IO.FileSystem.AccessControl.dll" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap -r:$(PkgSystem_Security_Permissions)\ref\netstandard2.0\System.Security.Permissions.dll $(PkgSystem_Configuration_ConfigurationManager)\ref\netstandard2.0\System.Configuration.ConfigurationManager.dll" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap $(PkgSystem_Data_Odbc)\ref\netstandard2.0\System.Data.Odbc.dll" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap $(PkgSystem_Drawing_Common)\ref\netcoreapp3.0\System.Drawing.Common.dll" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Exec Command="$(IkvmStub) -forwarders -bootstrap -r:$(PkgSystem_Security_AccessControl)\ref\netstandard2.0\System.Security.AccessControl.dll $(PkgSystem_Security_Permissions)\ref\netstandard2.0\System.Security.Permissions.dll" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
+    <Message Text="StubJars target is running..." Importance="high" />
+    <Exec Command='$(IkvmstubExe) -forwarders -bootstrap -lib:"$(RefDllPath)" "$(RefDllPath)/netstandard.dll"' />
+    <Exec Command="$(IkvmstubExe) -forwarders -bootstrap ../bin/$(Configuration)/$(TargetFramework)/publish/refs/System.Configuration.ConfigurationManager.dll" />
+    <Exec Command="$(IkvmstubExe) -forwarders -bootstrap ../bin/$(Configuration)/$(TargetFramework)/publish/refs/System.Data.Odbc.dll" />
+    <Exec Command="$(IkvmstubExe) -forwarders -bootstrap ../bin/$(Configuration)/$(TargetFramework)/publish/refs/System.Drawing.Common.dll" />
+    <Exec Command="$(IkvmstubExe) -forwarders -bootstrap ../bin/$(Configuration)/$(TargetFramework)/publish/refs/System.IO.FileSystem.AccessControl.dll" />
+    <Exec Command="$(IkvmstubExe) -forwarders -bootstrap ../bin/$(Configuration)/$(TargetFramework)/publish/refs/System.Security.AccessControl.dll" />    
   </Target>
 
   <Target Name="SystemCore" Condition=" !$(SkipSystemCoreDependency) ">
@@ -144,11 +60,6 @@
       </TransformOpenJdkDir>
     </ItemGroup>
     <RegexTransform Items="@(TransformOpenJdkDir)" />
-
-    <Copy SourceFiles="java\lang\ProcessImpl.java.framework" DestinationFiles="java\lang\ProcessImpl.java" Condition="$(TargetFramework.StartsWith('net4'))" />
-    <Copy SourceFiles="sun\nio\fs\NetFileSystemProvider.java.framework" DestinationFiles="sun\nio\fs\NetFileSystemProvider.java" Condition="$(TargetFramework.StartsWith('net4'))" />
-    <Copy SourceFiles="java\lang\ProcessImpl.java.core" DestinationFiles="java\lang\ProcessImpl.java" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
-    <Copy SourceFiles="sun\nio\fs\NetFileSystemProvider.java.core" DestinationFiles="sun\nio\fs\NetFileSystemProvider.java" Condition="$(TargetFramework.StartsWith('netstandard')) Or $(TargetFramework.StartsWith('netcore'))" />
   </Target>
 
   <Target Name="AssemblyInfoJava">
@@ -308,17 +219,17 @@
   </Target>
 
   <Target Name="Core" DependsOnTargets="ResponseGenTxt;ManifestMf;NashornVersion">
-    <Copy SourceFiles="..\bin\$(Configuration)\netstandard2.1\IKVM.Runtime.dll" DestinationFolder="." />
-    <Exec Command='$(IkvmcExe) -version:$(AssemblyVersion) -compressresources -opt:fields -strictfinalfieldsemantics -removeassertions -target:library -sharedclassloader -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\Microsoft.Win32.Primitives.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\mscorlib.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\netstandard.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.AppContext.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Buffers.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Collections.Concurrent.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Collections.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Collections.NonGeneric.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Collections.Specialized.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.ComponentModel.Composition.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.ComponentModel.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.ComponentModel.EventBasedAsync.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.ComponentModel.Primitives.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.ComponentModel.TypeConverter.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Configuration.ConfigurationManager.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Console.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Core.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Data.Common.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Data.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Data.Odbc.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Diagnostics.Contracts.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Diagnostics.Debug.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Diagnostics.FileVersionInfo.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Diagnostics.Process.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Diagnostics.StackTrace.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Diagnostics.TextWriterTraceListener.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Diagnostics.Tools.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Diagnostics.TraceSource.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Diagnostics.Tracing.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Drawing.Common.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Drawing.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Drawing.Primitives.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Dynamic.Runtime.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Globalization.Calendars.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Globalization.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Globalization.Extensions.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.Compression.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.Compression.FileSystem.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.Compression.ZipFile.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.FileSystem.AccessControl.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.FileSystem.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.FileSystem.DriveInfo.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.FileSystem.Primitives.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.FileSystem.Watcher.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.IsolatedStorage.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.MemoryMappedFiles.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.Pipes.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.IO.UnmanagedMemoryStream.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Linq.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Linq.Expressions.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Linq.Parallel.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Linq.Queryable.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Memory.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.Http.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.NameResolution.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.NetworkInformation.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.Ping.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.Primitives.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.Requests.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.Security.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.Sockets.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.WebHeaderCollection.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.WebSockets.Client.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Net.WebSockets.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Numerics.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Numerics.Vectors.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.ObjectModel.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Reflection.DispatchProxy.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Reflection.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Reflection.Emit.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Reflection.Emit.ILGeneration.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Reflection.Emit.Lightweight.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Reflection.Extensions.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Reflection.Primitives.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Resources.Reader.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Resources.ResourceManager.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Resources.Writer.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.CompilerServices.VisualC.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.Extensions.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.Handles.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.InteropServices.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.InteropServices.RuntimeInformation.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.Numerics.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.Serialization.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.Serialization.Formatters.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.Serialization.Json.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.Serialization.Primitives.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Runtime.Serialization.Xml.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.AccessControl.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.Claims.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.Cryptography.Algorithms.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.Cryptography.Csp.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.Cryptography.Encoding.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.Cryptography.Pkcs.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.Cryptography.Primitives.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.Cryptography.X509Certificates.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.Permissions.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.Principal.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.Principal.Windows.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Security.SecureString.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.ServiceModel.Web.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Text.Encoding.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Text.Encoding.Extensions.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Text.RegularExpressions.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Threading.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Threading.Overlapped.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Threading.Tasks.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Threading.Tasks.Extensions.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Threading.Tasks.Parallel.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Threading.Thread.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Threading.ThreadPool.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Threading.Timer.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Transactions.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.ValueTuple.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Web.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Windows.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Xml.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Xml.Linq.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Xml.ReaderWriter.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Xml.Serialization.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Xml.XDocument.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Xml.XmlDocument.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Xml.XmlSerializer.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Xml.XPath.dll -r:..\bin\$(Configuration)\netstandard2.1\publish\refs\System.Xml.XPath.XDocument.dll -r:IKVM.Runtime.dll -nowarn:110 -w4 -noparameterreflection @response.gen.txt' />
-    <Copy SourceFiles="..\bin\$(Configuration)\netstandard2.1\IKVM.Runtime.dll" DestinationFolder="..\bin\$(Configuration)\netcoreapp3.1\" />
+    <Message Text="Core target is running..." Importance="high" />
+    <Copy SourceFiles="..\bin\$(Configuration)\$(TargetFramework)\IKVM.Runtime.dll" DestinationFolder="." />
+    <Exec Command='$(IkvmcExe) -version:$(AssemblyVersion) -compressresources -opt:fields -strictfinalfieldsemantics -removeassertions -target:library -sharedclassloader -r:"$(RefDllPath)/*.dll" -r:$(RefDllPath)/System.Configuration.ConfigurationManager.dll -r:IKVM.Runtime.dll -nowarn:110 -w4 -noparameterreflection @response.gen.txt' />
     <CallTarget Targets="Peverify" />
     <ItemGroup>
       <IkvmDllFiles Include="IKVM.OpenJDK.*.dll" />
     </ItemGroup>
-    <Copy SourceFiles="@(IkvmDllFiles)" DestinationFolder="..\bin\$(Configuration)\netcoreapp3.1" />
-    <Exec Command="..\tools\bin\$(Configuration)\netcoreapp3.1\updbaseaddresses.exe response.txt" />
+    <Copy SourceFiles="@(IkvmDllFiles)" DestinationFolder="..\bin\$(Configuration)\$(TargetFramework)" />
+    <Exec Command="..\tools\bin\$(Configuration)\$(TargetFramework)\updbaseaddresses.exe response.txt" />
     <MakeDir Directories="..\lib" />
-    <Exec Command="$(IkvmstubExe) -out:..\lib\ikvm-api.jar ..\bin\$(Configuration)\netcoreapp3.1\IKVM.OpenJDK.Core.dll -namespace:ikvm.io -namespace:ikvm.lang-namespace:ikvm.runtime" />
+    <Exec Command="$(IkvmstubExe) -lib:'$(RefDllPath)' -out:..\lib\ikvm-api.jar ..\bin\$(Configuration)\$(TargetFramework)\IKVM.OpenJDK.Core.dll -namespace:ikvm.io -namespace:ikvm.lang-namespace:ikvm.runtime" />
   </Target>
 
   <Target Name="Peverify" Condition="$(PEVERIFY) != ''">
@@ -412,8 +323,6 @@
       <CleanFiles Include="vfs.zip" />
       <CleanFiles Include="*.jar" />
       <CleanFiles Include="MANIFEST.MF" />
-      <CleanFiles Include="java\lang\ProcessImpl.java" />
-      <CleanFiles Include="sun\nio\fs\NetFileSystemProvider.java" />
       <CleanFiles Include="java\lang\PropertyConstants.java" />
     </ItemGroup>
     <Delete Files="@(CleanFiles)" ContinueOnError="WarnAndContinue"/>
